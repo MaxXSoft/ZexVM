@@ -2,9 +2,9 @@
 
 **Zexium Virtual Machine** (aka. **ZexVM** or **ZVM**) is a register-based high-level language virtual machine (HLLVM). 
 
-Same as JVM, ZexVM is designed to solve the problems about cross-platform. It can run a certain kind of byte code file, which is platform-independent. 
+Same as JVM, ZexVM is designed to solve the problems about cross-platform. It can run a certain kind of bytecode file, which is platform-independent. 
 
-ZexVM has it's own instruction set and assembly language (like x86), also has an assembler (**ZASM**). In the future, there will be a programming language called **Arsha** can be compiled to ZexVM byte code. 
+ZexVM has it's own instruction set and assembly language (similar to x86), also has an assembler (**ZASM**). The assembler can convert ZexVM assembly to bytecode file. In the future, there will be a programming language called **Arsha** can be compiled to ZexVM bytecode. 
 
 ---
 
@@ -34,11 +34,11 @@ make zvm
 make zasm
 ```
 
-Before you build the project, you should make sure that your compiler supported the C++14 standard. 
+Before you build the project, you should make sure that your compiler supported the C++ 14 standard. 
 
 ## Usage
 
-To generate a ZexVM byte code file from the ZexVM assembly, please run: 
+To generate a ZexVM bytecode file from the ZexVM assembly, please run: 
 
 ```
 ./zasm <assembly file> [ -o <output file> ]

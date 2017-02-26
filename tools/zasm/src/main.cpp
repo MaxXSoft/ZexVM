@@ -19,14 +19,14 @@ void PrintHelp() {
 	std::fprintf(stderr, "  --version\t\tDisplay zasm version information\n");
 	std::fprintf(stderr, "  -o <file>\t\tPlace the output into <file>\n\n");
 	std::fprintf(stderr, "For bug reporting instructions, please see:\n");
-	std::fprintf(stderr, "\033[1m<GitHub link>\033[0m\n");
+	std::fprintf(stderr, "\033[1mhttps://github.com/MaxXSoft/ZexVM/issues\033[0m\n");
 }
 
 void PrintVersion() {
 	std::fprintf(stderr, "zasm (ZexVM Assmebler) version 0.0.1\n");
 	std::fprintf(stderr, "Copyright (C) 2010-2017 MaxXSoft\n");
 	std::fprintf(stderr, "This is a free software. For more information, please check:\n");
-	std::fprintf(stderr, "\033[1m<GitHub link>\033[0m\n");
+	std::fprintf(stderr, "\033[1mhttps://github.com/MaxXSoft/ZexVM\033[0m\n");
 }
 
 void GenerateBytecode(std::ifstream &in, std::ofstream &out, const char *file_name) {

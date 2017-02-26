@@ -1,0 +1,98 @@
+	def  '\x93', '\x94', '\x86'
+	def  '\x00', '\x01'
+
+__data:
+	def  0x20000
+	def  0x4000
+	def  __constant
+	def  __program
+
+__constant:
+info1:
+	def  "step "
+info2:
+	def  ": move plate "
+info3:
+	def  " from "
+info4:
+	def  " to "
+msg1:
+	def  "input the number of plate: "
+msg2:
+	def  "\nresult:\n"
+
+__program:
+	mov  r1, 1
+	mov  a1, msg1
+	int  4
+	int  5
+	mov  r2, rv
+	mov  a1, msg2
+	int  4
+	mov  a1, r2
+	mov  a2, 0x41
+	mov  a3, 0x42
+	mov  a4, 0x43
+	call 4, 0, hanoi
+	end
+
+move:
+	push a1
+	push a2
+	push a3
+	mov  r2, a1
+	mov  a1, info1
+	int  4
+	mov  a1, r1
+	int  2
+	add  r1, 1
+	mov  a1, info2
+	int  4
+	mov  a1, r2
+	int  2
+	mov  a1, info3
+	int  4
+	mov  a1, a2
+	int  0
+	mov  a1, info4
+	int  4
+	mov  a1, a3
+	int  0
+	mov  a1, 0x0A
+	int  0
+	pop a3
+	pop a2
+	pop a1
+	ret
+
+hanoi:
+	push a1
+	push a2
+	push a3
+	push a4
+	mov  r2, a1
+	eq   r2, 1
+	jz   r2, else
+	mov  a3, a4
+	call 3, 0, move
+	jmp  endif
+else:
+	sub  a1, 1
+	mov  r2, a3
+	mov  a3, a4
+	mov  a4, r2
+	call 4, 0, hanoi
+	add  a1, 1
+	call 3, 0, move
+	sub  a1, 1
+	mov  r2, a4
+	mov  a4, a3
+	mov  a3, a2
+	mov  a2, r2
+	call 4, 0, hanoi
+endif:
+	pop a4
+	pop a3
+	pop a2
+	pop a1
+	ret

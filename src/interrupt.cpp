@@ -75,7 +75,7 @@ int InterruptManager::RegisterInterrupt(IntFunc func) {
     return (int)func_vector_.size() - 1;
 }
 
-void InterruptManager::RaiseInterrupt(unsigned int index, std::array<Register, kRegisterCount> &reg, std::array<char, kMemorySize> &mem) {
+void InterruptManager::TriggerInterrupt(unsigned int index, std::array<Register, kRegisterCount> &reg, std::array<char, kMemorySize> &mem) {
     if (index > func_vector_.size() - 1) return;
 
     IntFuncArg arg;

@@ -57,7 +57,7 @@ struct InstVoid {
 
 enum OpType {
     kIntImm, kFloatImm,
-    kReg, kRegInt, kVoid,
+    kReg, kRegReg, kRegInt, kVoid,
     kCall, kST, kINT, kMOVL
 };
 
@@ -69,8 +69,8 @@ int op_type[] = {
     kRegInt, kIntImm, kIntImm, kCall, kVoid,
     kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kINT,
     kReg, kReg, kReg, kReg, kReg, kReg,
-    kReg, kReg, kReg,
-    kReg, kMOVL, kReg, kReg
+    kRegReg, kRegReg, kRegReg,
+    kRegReg, kMOVL, kRegReg, kRegReg
 };
 
 std::map<std::string, unsigned int> lab_list, lab_fill;
@@ -160,6 +160,16 @@ bool Generator::HandleOperator() {
             }
             return false;
         }
+        case kRegReg: {
+            if (Next() == kRegister) {
+                auto reg = lexer_.reg_val();
+                if (Next() == kRegister) {
+                    GenRegReg(reg, lexer_.reg_val());
+                    return true;
+                }
+            }
+            return false;
+        }
         case kVoid: {
             InstVoid inst = {index};
             WriteBytes(out_, inst);
@@ -216,7 +226,7 @@ bool Generator::HandleOperator() {
             return false;
         }
         case kST: {
-            if (Next() == kNumber) {
+            if (Next() == kNumber) { // TODO
                 auto dst = lexer_.num_val();
                 if (Next() == ',') {
                     Next();
@@ -353,14 +363,14 @@ int Generator::Generate() {
                     } while (Next() == ',');
                     goto switch_tok;
                 }
-                else if (HandleOperator() == false) {
+                else if (!HandleOperator()) {
                     PrintError("invalid operator");
                     goto switch_tok;
                 }
                 break;
             }
             case kEOF: {
-                if (lab_fill.empty() == false) {
+                if (!lab_fill.empty()) {
                     for (const auto &i : lab_fill) {
                         std::fprintf(stderr, "position: %u \033[31m\033[1merror:\033[0m undefined label \"%s\"\n", (unsigned int)i.second, i.first.c_str());
                         ++error_num_;

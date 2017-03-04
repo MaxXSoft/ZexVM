@@ -31,9 +31,9 @@ enum InstLen {
     itRR = sizeof(unsigned char) * 2, 
     itRI = sizeof(unsigned char) * 2 + sizeof(unsigned int), 
     itRIF = sizeof(unsigned char) * 2 + sizeof(double), 
-    itII = sizeof(unsigned char) * 2 + sizeof(unsigned int) * 2, 
-    itRRR = sizeof(unsigned char) * 3, 
-    itRRI = sizeof(unsigned char) * 2 + sizeof(unsigned int)
+    itII = sizeof(unsigned char) * 2 + sizeof(unsigned int) * 2
+    // itRRR = sizeof(unsigned char) * 3, 
+    // itRRI = sizeof(unsigned char) * 2 + sizeof(unsigned int)
 };
 
 union InstImm {
@@ -42,11 +42,13 @@ union InstImm {
 };
 
 #pragma pack(1)
+
 struct VMInst {
     unsigned char op;
     unsigned char reg;
     InstImm imm;
 };
+
 #pragma pack()
 
 template<typename T>
@@ -93,7 +95,7 @@ void ZexVM::Initialize() {
 bool ZexVM::LoadProgram(std::ifstream &file) {
     Initialize();
 
-    if (file.is_open() == false) return false;
+    if (!file.is_open()) return false;
 
     auto current = file.tellg();   // save current position
     file.seekg(0, std::ios::end);
@@ -283,7 +285,7 @@ int ZexVM::Run() {
             }
             case INT: {
                 auto opr = *(unsigned int *)(cache_.data() + reg_pc + itVOID);
-                int_manager_.RaiseInterrupt(opr, reg_, mem_);
+                int_manager_.TriggerInterrupt(opr, reg_, mem_);
                 reg_pc += itI;
                 break;
             }
@@ -297,7 +299,10 @@ int ZexVM::Run() {
                 reg_pc += itR;
                 break;
             }
-            // 
+            case ITS:{
+                //
+                break;
+            }
             default: {
                 program_error_ = true;
                 return kProgramError;

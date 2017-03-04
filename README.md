@@ -4,7 +4,7 @@
 
 Same as JVM, ZexVM is designed to solve the problems about cross-platform. It can run a certain kind of bytecode file, which is platform-independent. 
 
-ZexVM has it's own instruction set and assembly language (similar to x86), also has an assembler (**ZASM**). The assembler can convert ZexVM assembly to bytecode file. In the future, there will be a programming language called **Arsha** can be compiled to ZexVM bytecode. 
+ZexVM has its own instruction set and assembly language (similar to x86), also has an assembler (**ZASM**). The assembler can convert ZexVM assembly to bytecode file. In the future, there will be a programming language called **Arsha** can be compiled to ZexVM bytecode. 
 
 ---
 
@@ -16,8 +16,9 @@ ZexVM has it's own instruction set and assembly language (similar to x86), also 
 
 There is no appealing feature in the current version (000.001), but we will add a lot of new features in the future, such as: 
 
-- Just-In-Time (JIT) compile
+- Just-In-Time (JIT) compilation
 - Class support and OOP
+- Garbage Colloction
 
 ## Build
 

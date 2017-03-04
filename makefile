@@ -16,10 +16,10 @@ zasm_out = $(build_dir)zasm
 all: zvm zasm
 
 zvm: $(zvm_targets)
-    $(cc) $(zvm_targets) -o $(zvm_out) -std=c++14 -O$(opt_level)
+	$(cc) $(zvm_targets) -o $(zvm_out) -std=c++14 -O$(opt_level)
 
 zasm: $(zasm_targets)
-    $(cc) $(zasm_targets) -o $(zasm_out) -std=c++14 -O$(opt_level)
+	$(cc) $(zasm_targets) -o $(zasm_out) -std=c++14 -O$(opt_level)
 
 clean: 
-    rm $(zvm_out) $(zasm_out)
+	rm $(zvm_out) $(zasm_out)

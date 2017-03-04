@@ -147,7 +147,7 @@ int Lexer::NextToken() {
             }
         }
         do {
-            if (is_double == false && last_char == '.') is_double = true;
+            if (!is_double && last_char == '.') is_double = true;
             num_str += last_char;
             in_ >> last_char;
         } while (isdigit(last_char) || last_char == '.');

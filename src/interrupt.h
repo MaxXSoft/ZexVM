@@ -20,7 +20,7 @@ public:
     ~InterruptManager() {}
 
     int RegisterInterrupt(IntFunc func);
-    void RaiseInterrupt(unsigned int index, std::array<Register, kRegisterCount> &reg, std::array<char, kMemorySize> &mem);
+    void TriggerInterrupt(unsigned int index, std::array<Register, kRegisterCount> &reg, std::array<char, kMemorySize> &mem);
 
 private:
     std::vector<IntFunc> func_vector_;

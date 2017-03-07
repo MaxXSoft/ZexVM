@@ -1,6 +1,7 @@
 #include "zvm.h"
 
 #include <cmath>
+#include <cctype>
 
 namespace {
 
@@ -168,9 +169,13 @@ int ZexVM::Run() {
                 reg_pc += imm_mode ? itRI : itRR;
                 break;
             }
-            case ADDF: case SUBF: case MULF: case DIVF: case POW:
-            case LTF: case GTF: case LEF: case GEF: {
+            case ADDF: case SUBF: case MULF: case DIVF: case POW: {
                 reg_x.doub = CalcExpression(reg_x.doub, (imm_mode ? inst.imm.fp_val : reg_y.doub), inst.op);
+                reg_pc += imm_mode ? itRIF : itRR;
+                break;
+            }
+            case LTF: case GTF: case LEF: case GEF: {
+                reg_x.long_long = (long long)CalcExpression(reg_x.doub, (imm_mode ? inst.imm.fp_val : reg_y.doub), inst.op);
                 reg_pc += imm_mode ? itRIF : itRR;
                 break;
             }

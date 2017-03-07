@@ -73,7 +73,8 @@ int op_type[] = {
     kRegReg, kMOVL, kRegReg, kRegReg
 };
 
-std::map<std::string, unsigned int> lab_list, lab_fill;
+std::map<std::string, unsigned int> lab_list;
+std::multimap<std::string, unsigned int> lab_fill;
 std::string section_tag;
 unsigned int arg_stack_size = 0;
 
@@ -320,7 +321,7 @@ int Generator::Generate() {
                             unsigned int temp = (unsigned int)jmp_pos;
                             WriteBytes(out_, temp);
                             out_.seekp(cur_pos);
-                            found = true;
+                            if (!found) found = true;
                         }
                     }
                     if (found) lab_fill.erase(lexer_.lab_val());

@@ -61,8 +61,9 @@ Please read [zvm-is.md](https://github.com/MaxXSoft/ZexVM/blob/master/zvm-is.md)
 
 All of the test cases are in `test/` directory. 
 
-- **hello.zasm:** print "Hello world." in command line. 
-- **hanoi.zasm:** recursively solve the Hanoi Tower problem. 
+- **hello.zasm:** print "Hello world." in command line
+- **hanoi.zasm:** recursively solve the Hanoi Tower problem
+- **heart.zasm** print a heart pattern
 
 ## Copyright and License
 

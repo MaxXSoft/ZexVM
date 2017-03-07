@@ -96,7 +96,7 @@ int Lexer::NextToken() {
         do {
             id += last_char;
             in_ >> last_char;
-        } while (isalnum(last_char) || last_char == '_');
+        } while (!in_.eof() && (isalnum(last_char) || last_char == '_'));
         transform(id.begin(), id.end(), id.begin(), toupper);
 
         int temp = 0;

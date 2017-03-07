@@ -1,0 +1,187 @@
+; Reference: https://www.zhihu.com/question/20187195/answer/34873279
+
+	def  '\x93', '\x94', '\x86'
+	def  '\x00', '\x01'
+
+__data:
+	def  0x20000
+	def  0x4000
+	def  __constant
+	def  __program
+
+__constant:
+char:
+	def  ".:-=+*#%@ \n"
+
+__program:
+	mov  r5, 0
+	addf r5, 1.5         ; z
+main_for0_:
+	mov  r7, 0
+	addf r7, 1.5
+	negf r7
+	ltf  r7, r5
+	jz   r7, main_for0_end_
+	mov  r6, 0
+	addf r6, 1.5
+	negf r6              ; x
+main_for1_:
+	mov  r7, r6
+	ltf  r7, 1.5
+	jz   r7, main_for1_end_
+	mov  a1, r6
+	mov  a2, 0
+	mov  a3, r5
+	call 3, 0, f
+	lef  rv, 0.0
+	jz   rv, main_else_
+	push r5
+	mov  a2, r5
+	call 2, 0, h
+	push rv
+	mov  a1, r6
+	addf a1, 0.01
+	call 2, 0, h
+	pop  r7
+	subf rv, r7
+	push rv
+	mov  a1, r6
+	addf a2, 0.01
+	call 2, 0, h
+	subf rv, r7          ; nz
+	pop  r4              ; nx
+	mov  r5, 0
+	addf r5, 1.0         ; nd
+	mov  a1, r4
+	mulf a1, a1
+	addf a1, 0.0001
+	mov  a2, rv
+	mulf a2, a2
+	addf a1, a2
+	mov  r7, rv          ; nz
+	call 1, 0, sqrt
+	divf r5, rv          ; nd
+	addf r4, 0.01
+	subf r4, r7
+	mulf r4, r5
+	mulf r4, 0.5
+	addf r4, 0.5         ; d
+	mulf r4, 5.0
+	fti  r4
+	mov  a1, r4
+	call 1, 0, putchar
+	pop  r5
+	jmp  main_if_end_
+main_else_:
+	mov  a1, 9
+	call 1, 0, putchar
+main_if_end_:
+	addf r6, 0.025
+	jmp  main_for1_
+main_for1_end_:
+	mov  a1, 10
+	call 1, 0, putchar
+	subf r5, 0.05
+	jmp  main_for0_
+main_for0_end_:
+	end
+
+sqrt:
+	mov  r1, a1 ; C
+	mov  r2, a1 ; cur
+sqrt_while_:
+	mov  a1, r1
+	mov  r3, r2
+	mulf r3, r3
+	subf a1, r3
+	call 1, 0, abs
+	gtf  rv, 0.0000001
+	jz   rv, sqrt_while_end_
+	mov  r3, r1
+	divf r3, r2
+	addf r3, r2
+	divf r3, 2.0
+	mov  r2, r3
+	jmp  sqrt_while_
+sqrt_while_end_:
+	mov  rv, r2
+	ret
+
+abs:
+	mov  rv, a1
+	ltf  rv, 0.0
+	jz   rv, abs_if_end_
+	mov  rv, a1
+	negf rv
+	ret
+abs_if_end_:
+	mov  rv, a1
+	ret
+
+putchar:
+	mov  r1, char
+	add  r1, a1
+	ld   a1, r1
+	int  0
+	ret
+
+f:
+	push a1
+	push a2
+	push a3
+	mov  r1, a1
+	mov  r2, a2
+	mov  r3, a3
+	mulf r1, r1       ; x * x
+	mulf r2, r2       ; y * y
+	mulf r3, r3       ; z * z
+	mov  r4, 0
+	addf r4, 9.0
+	divf r4, 4.0
+	mulf r4, r2
+	addf r1, r4
+	addf r1, r3
+	subf r1, 1.0      ; a
+	pow  r1, 3.0
+	mov  r4, a1
+	mulf r4, r4       ; x * x
+	mulf r3, a3       ; z * z * z
+	mulf r4, r3
+	subf r1, r4
+	mov  r4, 0
+	addf r4, 9.0
+	divf r4, 80.0
+	mulf r4, r2
+	mulf r4, r3
+	subf r1, r4
+	mov  rv, r1
+	pop  a3
+	pop  a2
+	pop  a1
+	ret
+
+h:
+	push a1
+	push a2
+	mov  a3, a2
+	mov  a2, 0 ; for loop
+	addf a2, 1.0
+h_for0_:
+	mov  r1, a2
+	gef  r1, 0.0
+	jz   r1, h_for0_end_
+	call 3, 0, f ; if
+	lef  rv, 0.0
+	jz   rv, h_if0_end_
+	mov  rv, a2
+	pop  a2
+	pop  a1
+	ret
+h_if0_end_:
+	subf a2, 0.001
+	jmp  h_for0_
+h_for0_end_:
+	mov  rv, 0
+	pop  a2
+	pop  a1
+	ret

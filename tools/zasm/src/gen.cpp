@@ -68,9 +68,9 @@ int op_type[] = {
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kIntImm,
     kRegInt, kIntImm, kIntImm, kCall, kVoid,
     kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kINT,
-    kReg, kReg, kReg, kReg, kReg, kReg,
+    kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg,
-    kRegReg, kMOVL, kRegReg, kRegReg
+    kRegReg, kMOVL, kRegReg, kRegReg, kRegReg
 };
 
 std::map<std::string, unsigned int> lab_list;
@@ -86,7 +86,7 @@ inline void WriteBytes(std::ofstream &out, T &content) {
 }
 
 void Generator::PrintError(const char *description) {
-    std::fprintf(stderr, "\033[1mgenerator\033[0m(line %u): \033[31m\033[1merror:\033[0m %s\n", lexer_.line_pos(), description);
+    fprintf(stderr, "\033[1mgenerator\033[0m(line %u): \033[31m\033[1merror:\033[0m %s\n", lexer_.line_pos(), description);
     ++error_num_;
 }
 
@@ -254,23 +254,31 @@ bool Generator::HandleOperator() {
             return false;
         }
         case kMOVL: {
-            if (Next() == kRegister && Next() == ',' && Next() == kNumber) {
-                auto count = lexer_.num_val();
-                if (Next() == ',') {
-                    Next();
-                    List lst = {(unsigned int)(count * sizeof(List)), 0};
-                    GenRegReg(lexer_.reg_val(), 0);
-                    if (tok_type == kNumber) {
-                        lst.position = lexer_.num_val();
-                        WriteBytes(out_, lst);
-                        return true;
+            if (Next() == kRegister && Next() == ',') {
+                auto reg = lexer_.reg_val();
+                if (Next() == kNumber) {
+                    auto count = lexer_.num_val();
+                    if (Next() == ',') {
+                        Next();
+                        List lst = {(unsigned int)(count * sizeof(List)), 0};
+                        GenRegReg(reg, 0);
+                        if (tok_type == kNumber) {
+                            lst.position = lexer_.num_val();
+                            WriteBytes(out_, lst);
+                            return true;
+                        }
+                        else if (tok_type == kLabelRef) {
+                            WriteBytes(out_, lst);
+                            out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
+                            HandleLabelRef();
+                            return true;
+                        }
                     }
-                    else if (tok_type == kLabelRef) {
-                        WriteBytes(out_, lst);
-                        out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
-                        HandleLabelRef();
-                        return true;
-                    }
+                }
+                else if (tok_type == kFloat) {
+                    InstFloatImm inst = {index, (unsigned char)(reg << 4), lexer_.float_val()};
+                    WriteBytes(out_, inst);
+                    return true;
                 }
             }
             return false;
@@ -364,6 +372,10 @@ int Generator::Generate() {
                     } while (Next() == ',');
                     goto switch_tok;
                 }
+                else if (lexer_.op_val() == HEADER) {
+                    WriteBytes(out_, kZBCHead);
+                    WriteBytes(out_, kZBCVersion);
+                }
                 else if (!HandleOperator()) {
                     PrintError("invalid operator");
                     goto switch_tok;
@@ -373,7 +385,7 @@ int Generator::Generate() {
             case kEOF: {
                 if (!lab_fill.empty()) {
                     for (const auto &i : lab_fill) {
-                        std::fprintf(stderr, "position: %u \033[31m\033[1merror:\033[0m undefined label \"%s\"\n", (unsigned int)i.second, i.first.c_str());
+                        fprintf(stderr, "position: %u \033[31m\033[1merror:\033[0m undefined label \"%s\"\n", (unsigned int)i.second, i.first.c_str());
                         ++error_num_;
                     }
                 }

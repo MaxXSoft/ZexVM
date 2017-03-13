@@ -3,8 +3,6 @@
 #include <iomanip>
 #include <string>
 
-#include <ctime>
-
 #include "type.h"
 #include "interrupt.h"
 #include "zvm.h"

@@ -13,8 +13,8 @@ enum InstOp {
     MOV, POP, PUSH, LD, ST, STR, INT,   // Basic
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, LENS, EQS,   // String
-    ADDL, MOVL, LENL, EQL,   // List
-    DEF   // Pseudo instruction
+    ADDL, MOVL, CPL, LENL, EQL,   // List
+    DEF, HEADER   // Pseudo instruction
 };
 
 enum TokenType {

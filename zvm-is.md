@@ -119,14 +119,15 @@ There are 7 types of instructions in ZexVM.
 | INT | `INT Imm` | Triggering an external interrupt |
 | ITF | `ITF Reg1` | Reg1.Double = (Double)Reg1.Int |
 | FTI | `FTI Reg1` | Reg1.Int = (Int)Reg1.Double |
-| ITS | `ITS Reg1` | Reg1.String = (String)Reg1.Int |
-| STI | `STI Reg1` | Reg1.Int = (Int)Reg1.String |
-| FTS | `FTS Reg1` | Reg1.String = (String)Reg1.Double |
-| STF | `STF Reg1` | Reg1.Double = (Double)Reg1.String |
+| ITS | `ITS Reg1, Reg2` | Reg1.String = (String)Reg2.Int |
+| STI | `STI Reg1, Reg2` | Reg1.Int = (Int)Reg2.String |
+| FTS | `FTS Reg1, Reg2` | Reg1.String = (String)Reg2.Double |
+| STF | `STF Reg1, Reg2` | Reg1.Double = (Double)Reg2.String |
 | ADDS | `ADDS Reg1, Reg2` | Reg1.String += Reg2.String |
 | LENS | `LENS Reg1, Reg2` | Reg1 = Reg2.String.Length |
 | EQS | `EQS Reg1, Reg2` | Reg1 = Reg1.String == Reg2.String |
 | ADDL | `ADDL Reg1, Reg2` | Reg1.List += Reg2.List |
-| MOVL | `MOVL Reg1, Reg2` | Reg1.List = Reg2.List |
+| MOVL | `MOVL Reg1, Len, Pos` | Reg1.List = List(length = Len, position = Pos) |
+| CPL | `CPL Reg1, Reg2` | Reg1.List = Reg2.List |
 | LENL | `LENL Reg1, Reg2` | Reg1 = Reg2.List.Length |
 | EQL | `EQL Reg1, Reg2` | Reg1 = Reg1.List == Reg2.List |

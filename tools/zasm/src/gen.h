@@ -5,6 +5,9 @@
 
 #include "lexer.h"
 
+const unsigned char kZBCHead[3] = {'\x93', '\x94', '\x86'};
+const unsigned char kZBCVersion[2] = {0, 2};
+
 class Generator {
 public:
     Generator(Lexer &lexer, std::ofstream &out) : lexer_(lexer), out_(out), error_num_(0) {}

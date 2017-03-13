@@ -1,5 +1,4 @@
-	DEF  '\x93', '\x94', '\x86'   ; zvm bytecode header
-	DEF  '\x00', '\x01'           ; version: 000.001
+	HEADER                        ; zvm bytecode header
 __data:
 	DEF  0x20000                  ; memory size
 	DEF  0x4000                   ; argument stack size

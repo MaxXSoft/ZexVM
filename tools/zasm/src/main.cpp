@@ -9,24 +9,24 @@
 namespace {
 
 void PrintError(const char *description) {
-    std::fprintf(stderr, "\033[31m\033[1merror:\033[0m %s\n", description);
+    fprintf(stderr, "\033[31m\033[1merror:\033[0m %s\n", description);
 }
 
 void PrintHelp() {
-    std::fprintf(stderr, "usage: zasm <input file> [options]\n\n");
-    std::fprintf(stderr, "options:\n");
-    std::fprintf(stderr, "  --help\t\tDisplay this help information\n");
-    std::fprintf(stderr, "  --version\t\tDisplay zasm version information\n");
-    std::fprintf(stderr, "  -o <file>\t\tPlace the output into <file>\n\n");
-    std::fprintf(stderr, "For bug reporting instructions, please see:\n");
-    std::fprintf(stderr, "\033[1mhttps://github.com/MaxXSoft/ZexVM/issues\033[0m\n");
+    fprintf(stderr, "usage: zasm <input file> [options]\n\n");
+    fprintf(stderr, "options:\n");
+    fprintf(stderr, "  --help\t\tDisplay this help information\n");
+    fprintf(stderr, "  --version\t\tDisplay zasm version information\n");
+    fprintf(stderr, "  -o <file>\t\tPlace the output into <file>\n\n");
+    fprintf(stderr, "For bug reporting instructions, please see:\n");
+    fprintf(stderr, "\033[1mhttps://github.com/MaxXSoft/ZexVM/issues\033[0m\n");
 }
 
 void PrintVersion() {
-    std::fprintf(stderr, "zasm (ZexVM Assmebler) version 0.0.1\n");
-    std::fprintf(stderr, "Copyright (C) 2010-2017 MaxXSoft\n");
-    std::fprintf(stderr, "This is a free software. For more information, please check:\n");
-    std::fprintf(stderr, "\033[1mhttps://github.com/MaxXSoft/ZexVM\033[0m\n");
+    fprintf(stderr, "zasm (ZexVM Assmebler) version %03d.%03d\n", kZBCVersion[0], kZBCVersion[1]);
+    fprintf(stderr, "Copyright (C) 2010-2017 MaxXSoft\n");
+    fprintf(stderr, "This is a free software. For more information, please check:\n");
+    fprintf(stderr, "\033[1mhttps://github.com/MaxXSoft/ZexVM\033[0m\n");
 }
 
 void GenerateBytecode(std::ifstream &in, std::ofstream &out, const char *file_name) {
@@ -36,8 +36,8 @@ void GenerateBytecode(std::ifstream &in, std::ofstream &out, const char *file_na
 
     auto error_num = gen.Generate() + lexer.error_num();
     if (error_num > 0) {
-        std::fprintf(stderr, "generation failed, %d error(s) detected.\n", error_num);
-        std::remove(file.c_str());
+        fprintf(stderr, "generation failed, %d error(s) detected.\n", error_num);
+        remove(file.c_str());
     }
 }
 

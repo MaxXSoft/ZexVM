@@ -16,8 +16,8 @@ const char *op_str[] = {
     "MOV", "POP", "PUSH", "LD", "ST", "STR", "INT",
     "ITF", "FTI", "ITS", "STI", "FTS", "STF",
     "ADDS", "LENS", "EQS",
-    "ADDL", "MOVL", "LENL", "EQL",
-    "DEF"
+    "ADDL", "MOVL", "CPL", "LENL", "EQL",
+    "DEF", "HEADER"
 };
 
 const char *reg_str[] = {
@@ -30,7 +30,7 @@ const char *reg_str[] = {
 int IsOperator(const char *str, unsigned int line) {
     auto len = sizeof(op_str) / sizeof(op_str[0]);
     for (int i = 0; i < len; ++i) {
-        if(!std::strcmp(str, op_str[i])) return i;
+        if(!strcmp(str, op_str[i])) return i;
     }
     return kError;
 }
@@ -38,7 +38,7 @@ int IsOperator(const char *str, unsigned int line) {
 int IsRegister(const char *str, unsigned int line) {
     auto len = sizeof(reg_str) / sizeof(reg_str[0]);
     for (int i = 0; i < len; ++i) {
-        if(!std::strcmp(str, reg_str[i])) return i;
+        if(!strcmp(str, reg_str[i])) return i;
     }
     return kError;
 }
@@ -59,7 +59,7 @@ int GetDLE(const std::string &str) {
         case 'x': {
             auto hex = str.substr(1);
             char *end_pos = nullptr;
-            auto ret = (int)std::strtol(hex.c_str(), &end_pos, 16);
+            auto ret = (int)strtol(hex.c_str(), &end_pos, 16);
             return end_pos - hex.c_str() == hex.length() ? ret : kError;
         }
         default: return kError;
@@ -69,7 +69,7 @@ int GetDLE(const std::string &str) {
 }
 
 int Lexer::PrintError(const char *description) {
-    std::fprintf(stderr, "\033[1mlexer\033[0m(line %u): \033[31m\033[1merror:\033[0m %s\n", line_pos_, description);
+    fprintf(stderr, "\033[1mlexer\033[0m(line %u): \033[31m\033[1merror:\033[0m %s\n", line_pos_, description);
     ++error_num_;
     return kError;
 }

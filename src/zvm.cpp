@@ -2,6 +2,9 @@
 
 #include <cmath>
 #include <cctype>
+#include <cstdlib>
+#include <string>
+#include <cstring>
 
 namespace {
 
@@ -14,7 +17,7 @@ enum InstOp {
     MOV, POP, PUSH, LD, ST, STR, INT,   // Basic
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, LENS, EQS,   // String
-    ADDL, MOVL, LENL, EQL,   // List
+    ADDL, MOVL, CPL, LENL, EQL   // List
 };
 
 enum InstReg {
@@ -304,8 +307,93 @@ int ZexVM::Run() {
                 reg_pc += itR;
                 break;
             }
-            case ITS:{
+            case ITS: case FTS: {
+                // GC
+                auto str = std::to_string(inst.op == ITS ? reg_y.long_long : reg_y.doub);
+                temp.num = reg_x;
+                if (temp.str.position + str.size() > kMemorySize - 1) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
+                strcpy((char *)(mem_.data() + temp.str.position), str.c_str());
+                reg_pc += itRR;
+                break;
+            }
+            case STI: case STF: {
+                // GC
+                temp.num = reg_y;
+                if (temp.str.position > kMemorySize - 1) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
+                if (inst.op == STI) {
+                    reg_x.long_long = strtoll(mem_.data() + temp.str.position, nullptr);
+                }
+                else {
+                    reg_x.doub = strtod(mem_.data() + temp.str.position, nullptr);
+                }
+                reg_pc += itRR;
+                break;
+            }
+            case ADDS: case EQS: {
+                // GC
+                temp.num = reg_x;
+                ZValue opr;
+                opr.num = reg_y;
+                if (temp.str.position > kMemorySize - 1 || opr.str.position > kMemorySize - 1) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
+                if (inst.op == ADDS) {
+                    strcat((char *)(mem_.data() + temp.str.position), (char *)(mem_.data() + opr.str.position));
+                }
+                else {
+                    reg_x.long_long = !strcmp((char *)(mem_.data() + temp.str.position), (char *)(mem_.data() + opr.str.position));
+                }
+                reg_pc += itRR;
+                break;
+            }
+            case LENS: {
+                // GC
+                temp.num = reg_y;
+                if (temp.str.position > kMemorySize - 1) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
+                reg_x.long_long = strlen((char *)(mem_.data() + temp.str.position));
+                reg_pc += itRR
+                break;
+            }
+            case ADDL: {
+                // GC
+                temp.num = reg_x;
                 //
+                reg_pc += itRR;
+                break;
+            }
+            case MOVL: {
+                // GC?
+                reg_x.doub = inst.imm.fp_val;
+                reg_pc += itRIF;
+                break;
+            }
+            case CPL: {
+                // GC
+                temp.num = reg_x;
+                //
+                reg_pc += itRR;
+                break;
+            }
+            case LENL: {
+                temp.num = reg_y;
+                reg_x.long_long = temp.list.len;
+                reg_pc += itRR;
+                break;
+            }
+            case EQL: {
+                // GC
+                //
+                reg_pc += itRR;
                 break;
             }
             default: {

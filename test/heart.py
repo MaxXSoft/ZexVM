@@ -1,3 +1,5 @@
+# Reference: https://www.zhihu.com/question/20187195/answer/34873279
+
 import math
 import sys
 

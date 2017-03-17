@@ -1,7 +1,6 @@
 ; Reference: https://www.zhihu.com/question/20187195/answer/34873279
 
-	def  '\x93', '\x94', '\x86'
-	def  '\x00', '\x01'
+	header
 
 __data:
 	def  0x20000
@@ -14,16 +13,13 @@ char:
 	def  ".:-=+*#%@ \n"
 
 __program:
-	mov  r5, 0
-	addf r5, 1.5         ; z
+	movl r5, 1.5
 main_for0_:
-	mov  r7, 0
-	addf r7, 1.5
+	movl r7, 1.5
 	negf r7
 	ltf  r7, r5
 	jz   r7, main_for0_end_
-	mov  r6, 0
-	addf r6, 1.5
+	movl r6, 1.5
 	negf r6              ; x
 main_for1_:
 	mov  r7, r6
@@ -135,8 +131,7 @@ f:
 	mulf r1, r1       ; x * x
 	mulf r2, r2       ; y * y
 	mulf r3, r3       ; z * z
-	mov  r4, 0
-	addf r4, 9.0
+	movl r4, 9.0
 	divf r4, 4.0
 	mulf r4, r2
 	addf r1, r4
@@ -148,8 +143,7 @@ f:
 	mulf r3, a3       ; z * z * z
 	mulf r4, r3
 	subf r1, r4
-	mov  r4, 0
-	addf r4, 9.0
+	movl r4, 9.0
 	divf r4, 80.0
 	mulf r4, r2
 	mulf r4, r3
@@ -164,8 +158,7 @@ h:
 	push a1
 	push a2
 	mov  a3, a2
-	mov  a2, 0 ; for loop
-	addf a2, 1.0
+	movl a2, 1.0 ; for loop
 h_for0_:
 	mov  r1, a2
 	gef  r1, 0.0

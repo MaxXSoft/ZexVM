@@ -1,5 +1,4 @@
-	def  '\x93', '\x94', '\x86'
-	def  '\x00', '\x01'
+	header
 
 __data:
 	def  0x20000

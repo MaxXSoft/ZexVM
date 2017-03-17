@@ -327,7 +327,7 @@ int ZexVM::Run() {
                     return kMemoryError;
                 }
                 if (inst.op == STI) {
-                    reg_x.long_long = strtoll(mem_.data() + temp.str.position, nullptr);
+                    reg_x.long_long = strtoll(mem_.data() + temp.str.position, nullptr, 10);
                 }
                 else {
                     reg_x.doub = strtod(mem_.data() + temp.str.position, nullptr);
@@ -361,7 +361,7 @@ int ZexVM::Run() {
                     return kMemoryError;
                 }
                 reg_x.long_long = strlen((char *)(mem_.data() + temp.str.position));
-                reg_pc += itRR
+                reg_pc += itRR;
                 break;
             }
             case ADDL: {

@@ -367,7 +367,19 @@ int ZexVM::Run() {
             case ADDL: {
                 // GC
                 temp.num = reg_x;
-                //
+                ZValue opr;
+                opr.num = reg_y;
+                if (temp.list.len + temp.list.position > kMemorySize - 1 || 
+                        opr.list.len + opr.list.position > kMemorySize - 1 ||
+                        temp.list.position + temp.list.len + opr.list.len > kMemorySize - 1) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
+                for (int i = 0; i < opr.list.len; ++i) {
+                    mem_[temp.list.position + temp.list.len + i] = mem_[opr.list.position + i];
+                }
+                temp.list.len += opr.list.len;
+                reg_x = temp.num;
                 reg_pc += itRR;
                 break;
             }
@@ -380,7 +392,15 @@ int ZexVM::Run() {
             case CPL: {
                 // GC
                 temp.num = reg_x;
-                //
+                ZValue opr;
+                opr.num = reg_y;
+                if (temp.list.len != opr.list.len) {
+                    program_error_ = true;
+                    return kProgramError;
+                }
+                for (int i = 0; i < opr.list.len; ++i) {
+                    mem_[temp.list.position + i] = mem_[opr.list.position + i];
+                }
                 reg_pc += itRR;
                 break;
             }
@@ -392,7 +412,21 @@ int ZexVM::Run() {
             }
             case EQL: {
                 // GC
-                //
+                temp.num = reg_x;
+                ZValue opr;
+                opr.num = reg_y;
+                if (temp.list.len != opr.list.len) {
+                    reg_x.long_long = 0;
+                }
+                else {
+                    reg_x.long_long = 1;
+                    for (int i = 0; i < opr.list.len; ++i) {
+                        if (mem_[temp.list.position + i] != mem_[opr.list.position + i]) {
+                            reg_x.long_long = 0;
+                            break;
+                        }
+                    }
+                }
                 reg_pc += itRR;
                 break;
             }

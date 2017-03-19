@@ -79,7 +79,7 @@ std::string section_tag;
 unsigned int arg_stack_size = 0;
 
 template <typename T>
-inline void WriteBytes(std::ofstream &out, T &content) {
+inline void WriteBytes(std::ofstream &out, T &&content) {
     out.write((char *)&content, sizeof(content));
 }
 
@@ -227,18 +227,33 @@ bool Generator::HandleOperator() {
             return false;
         }
         case kST: {
-            if (Next() == kNumber) { // TODO
+            Next();
+            if (tok_type == kNumber || tok_type == kLabelRef) {
                 auto dst = lexer_.num_val();
+                bool label_mode = tok_type == kLabelRef;
                 if (Next() == ',') {
                     Next();
                     if (tok_type == kRegister) {
-                        InstIntImm inst = {index, (unsigned char)((lexer_.reg_val() << 4) + 1), dst};
-                        WriteBytes(out_, inst);
+                        if (label_mode) {
+                            GenRegReg(lexer_.reg_val(), 1);
+                            HandleLabelRef();
+                        }
+                        else {
+                            InstIntImm inst = {index, (unsigned char)((lexer_.reg_val() << 4) + 1), dst};
+                            WriteBytes(out_, inst);
+                        }
                         return true;
                     }
                     else if (tok_type == kNumber) {
-                        InstDoubleInt inst = {index, 0, dst, lexer_.num_val()};
-                        WriteBytes(out_, inst);
+                        if (kLabelRef) {
+                            GenRegReg(0, 0);
+                            HandleLabelRef();
+                            WriteBytes(out_, lexer_.num_val());
+                        }
+                        else {
+                            InstDoubleInt inst = {index, 0, dst, lexer_.num_val()};
+                            WriteBytes(out_, inst);
+                        }
                         return true;
                     }
                 }

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cstring>
 
 #include "type.h"
 #include "interrupt.h"

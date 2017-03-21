@@ -1,7 +1,6 @@
 export cc = g++
 export opt_level = 3
-
-build_dir = build/
+export build_dir = build/
 
 zvm_dir = src/
 zvm_targets = $(zvm_dir)main.cpp $(zvm_dir)interrupt.cpp $(zvm_dir)zvm.cpp

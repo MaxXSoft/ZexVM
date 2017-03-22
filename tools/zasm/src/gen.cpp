@@ -164,7 +164,7 @@ bool Generator::HandleOperator() {
         case kRegReg: {
             if (Next() == kRegister) {
                 auto reg = lexer_.reg_val();
-                if (Next() == kRegister) {
+                if (Next() == ',' && Next() == kRegister) {
                     GenRegReg(reg, lexer_.reg_val());
                     return true;
                 }
@@ -245,7 +245,7 @@ bool Generator::HandleOperator() {
                         return true;
                     }
                     else if (tok_type == kNumber) {
-                        if (kLabelRef) {
+                        if (tok_type == kLabelRef) {
                             GenRegReg(0, 0);
                             HandleLabelRef();
                             WriteBytes(out_, lexer_.num_val());

@@ -309,7 +309,13 @@ int ZexVM::Run() {
             }
             case ITS: case FTS: {
                 // GC
-                auto str = std::to_string(inst.op == ITS ? reg_y.long_long : reg_y.doub);
+                std::string str;
+                if (inst.op == ITS) {
+                    str = std::to_string(reg_y.long_long);
+                }
+                else {
+                    str = std::to_string(reg_y.doub);
+                }
                 temp.num = reg_x;
                 if (temp.str.position + str.size() > kMemorySize - 1) {
                     program_error_ = true;

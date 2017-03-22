@@ -33,6 +33,11 @@ zvm::ZValue PutString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     return null_value;
 }
 
+// zvm::ZValue PutRawString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
+//     fprintf(stderr, "%s", mem.data() + arg[0].long_long);
+//     return null_value;
+// }
+
 zvm::ZValue GetInteger(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     temp.num.long_long = 0;
     scanf("%lld", &temp.num.long_long);
@@ -51,6 +56,11 @@ zvm::ZValue GetString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     return null_value;
 }
 
+// zvm::ZValue GetRawString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
+//     scanf("%s", mem.data() + arg[0].long_long);
+//     return null_value;
+// }
+
 zvm::ZValue AddChar(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     putchar((int)(arg[0].long_long & 0xFF));
     return null_value;
@@ -61,6 +71,11 @@ zvm::ZValue AddString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     printf("%s", mem.data() + temp.str.position);
     return null_value;
 }
+
+// zvm::ZValue AddRawString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
+//     printf("%s", mem.data() + arg[0].long_long);
+//     return null_value;
+// }
 
 zvm::ZValue Flush(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     if (arg[0].long_long == 0) {

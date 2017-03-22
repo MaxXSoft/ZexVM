@@ -63,7 +63,8 @@ All of the test cases are in `test/` directory.
 
 - **hello.zasm:** print "Hello world." in command line
 - **hanoi.zasm:** recursively solve the Hanoi Tower problem
-- **heart.zasm** print a heart pattern
+- **heart.zasm:** print a heart pattern
+- **conv.zasm:** test about type conversion
 
 ## Copyright and License
 

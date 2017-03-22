@@ -1,0 +1,90 @@
+    header
+
+__data:
+    def  0x20000
+    def  0x4000
+    def  __constant
+    def  __program
+
+__constant:
+str_result:
+    def  "result of convert "
+str_endl:
+    def  "\n"
+
+str_itf:
+    def  "integer to floating point: "
+str_fti:
+    def  "floating point to integer: "
+str_its:
+    def  "integer to string: "
+str_stf:
+    def  "string to floating number: "
+str_array:
+    def  str_itf, str_fti, str_its, str_stf
+
+string_attach_pointer:
+    def  string_attach, 0
+string_temp_pointer:
+    def  string_temp, 0
+string_attach:
+    def  ".666"
+string_temp:
+    def  ""
+
+__program:
+    mov  r1, 12345
+    itf  r1
+    addf r1, 0.6789
+    mov  a1, 0
+    call 1, 0, print
+    mov  a1, r1
+    int  3
+    call 0, 0, newline
+
+    subf r1, 100.233
+    mov  a1, r1
+    int  3
+    call 0, 0, newline
+    fti  r1
+    mov  a1, 1
+    call 1, 0, print
+    mov  a1, r1
+    int  2
+    call 0, 0, newline
+
+    ld   r2, string_temp_pointer
+    its  r2, r1
+    mov  a1, 2
+    call 1, 0, print
+    mov  a1, string_temp
+    int  4
+    call 0, 0, newline
+
+    ld   r3, string_attach_pointer
+    adds r2, r3
+    stf  r1, r2
+    mov  a1, 3
+    call 1, 0, print
+    mov  a1, r1
+    int  3
+    call 0, 0, newline
+
+    end
+
+print:
+    mul  a1, 4
+    mov  a2, str_array
+    add  a2, a1
+    and  a2, 0xffffffff
+    mov  a1, str_result
+    int  4
+    ld   a1, a2
+    and  a1, 0xffffffff
+    int  4
+    ret
+
+newline:
+    mov  a1, str_endl
+    int  4
+    ret

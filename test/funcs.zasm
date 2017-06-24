@@ -11,10 +11,37 @@ str_test:
     def  "test of "
 str_colon:
     def  ": "
+
 str_test_neg:
     def  "negative immediate number"
-str_array:
-    def  str_test_neg, 0
+str_test_addition:
+    def  "string addition"
+str_test_clock:
+    def  "clock"
+str_test_file:
+    def  "file"
+str_array_test:
+    def  str_test_neg, str_test_addition, str_test_clock
+    def  str_test_file
+
+str_test_clock_before:
+    def  "before "
+str_test_clock_after:
+    def  "after "
+str_test_clock_sleep:
+    def  "sleep for 1000ms"
+str_test_clock_done:
+    def  "done"
+str_test_file_open:
+    def  "opening file "
+str_test_file_path:
+    def  "../test/funcs.zasm"
+str_test_file_failed:
+    def  "failed"
+str_test_file_read:
+    def  "read byte "
+str_test_file_close:
+    def  "file closed"
 
 __program:
     mov  a1, 0        ; negative immediate number
@@ -24,21 +51,137 @@ __program:
     int  3
     call 0, 0, newline
 
+    mov  a1, 1        ; string addition & flush
+    call 1, 0, print_test
+    mov  a1, str_test_addition
+    int  9
+    int  9
+    mov  a1, 0
+    int  10
+    call 0, 0, newline
+    call 0, 0, newline
+
+    mov  a1, 2        ; clock
+    call 1, 0, print_test
+    call 0, 0, newline
+    mov  a1, str_test_clock_before
+    int  4
+    int  11
+    mov  a1, rv
+    int  2
+    call 0, 0, newline
+    call 0, 0, kill_time
+    mov  a1, str_test_clock_after
+    int  4
+    int  11
+    mov  a1, rv
+    int  2
+    call 0, 0, newline
+    mov  a1, str_test_clock_sleep
+    int  4
+    mov  a1, 1000
+    int  12
+    call 0, 0, newline
+    mov  a1, str_test_clock_done
+    int  4
+    call 0, 0, newline
+    call 0, 0, newline
+
+    mov  a1, 3        ; file
+    call 1, 0, print_test
+    call 0, 0, newline
+    mov  a1, str_test_file_open
+    int  4
+    mov  a1, str_test_file_path
+    int  4
+    call 0, 0, newline
+    mov  a1, str_test_file_path
+    mov  a2, 0        ; read only
+    int  13           ; OpenFile
+    mov  r1, 0        ; if
+    eq   r1, rv
+    jz   r1, main_if0_else_
+    mov  a1, str_test_file_failed
+    int  4
+    call 0, 0, newline
+    jmp  main_if0_end_
+main_if0_else_:
+    mov  r1, rv       ; r1 = file_pointer
+    mov  a1, str_test_file_read
+    int  4
+    call 0, 0, newline
+    mov  a1, r1
+    int  15           ; ReadByte
+    mov  a1, rv
+    int  0
+    mov  a1, r1
+    int  19           ; Tell
+    mov  r2, rv       ; r2 = file_position
+    mov  a1, r1
+    mov  a2, 3
+    mov  a3, 1
+    int  20           ; Seek
+    mov  a1, r1
+    int  15           ; ReadByte
+    mov  a1, rv
+    int  0
+    mov  a1, r1
+    int  15           ; ReadByte
+    mov  a1, rv
+    int  0
+    mov  a1, r1
+    mov  a2, r2
+    mov  a3, 0
+    int  20           ; Seek
+    mov  r3, 0        ; for loop
+main_for0_:
+    mov  r4, r3
+    lt   r4, 9
+    jz   r4, main_for0_end_
+    mov  a1, r1
+    int  15           ; ReadByte
+    mov  a1, rv
+    int  0
+    add  r3, 1
+    jmp  main_for0_
+main_for0_end_:
+    call 0, 0, newline
+    mov  a1, r1
+    int  14           ; CloseFile
+    mov  a1, str_test_file_close
+    int  4
+    call 0, 0, newline
+main_if0_end_:
+
     end
 
 newline:
-    mov  a1, '\n'     ; immediate number with type of 'Char'
+    mov  a1, '\n'     ; 'Char' type immediate number
     int  8
     ret
 
 print_test:
-    mul  a1, 8
-    mov  a2, str_array
+    mul  a1, 4
+    mov  a2, str_array_test
     add  a2, a1
     mov  a1, str_test
     int  4
     ld   a1, a2
+    and  a1, 0xffffffff
     int  4
     mov  a1, str_colon
     int  4
     ret
+
+kill_time:
+    mov  r1, 0
+kt_for0_:
+    mov  r2, r1
+    lt   r2, 50000000
+    jz   r2, kt_for0_end_
+    ; do nothing
+    add  r1, 1
+    jmp  kt_for0_
+kt_for0_end_:
+    ret
+

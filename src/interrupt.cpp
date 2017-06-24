@@ -89,7 +89,7 @@ zvm::ZValue Flush(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
 
 zvm::ZValue GetMillisecond(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     temp.num.long_long = (long long)clock() * 1000 / CLOCKS_PER_SEC;
-    return null_value;
+    return temp;
 }
 
 zvm::ZValue Sleep(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {

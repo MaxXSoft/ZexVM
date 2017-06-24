@@ -15,12 +15,10 @@ char:
 __program:
 	movl r5, 1.5
 main_for0_:
-	movl r7, 1.5
-	negf r7
+	movl r7, -1.5
 	ltf  r7, r5
 	jz   r7, main_for0_end_
-	movl r6, 1.5
-	negf r6              ; x
+	movl r6, -1.5        ; x
 main_for1_:
 	mov  r7, r6
 	ltf  r7, 1.5

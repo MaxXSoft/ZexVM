@@ -65,6 +65,7 @@ All of the test cases are in `test/` directory.
 - **hanoi.zasm:** recursively solve the Hanoi Tower problem
 - **heart.zasm:** print a heart pattern
 - **conv.zasm:** test about type conversion
+- **funcs.zasm** functional test
 
 ## Copyright and License
 

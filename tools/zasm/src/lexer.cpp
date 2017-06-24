@@ -119,7 +119,7 @@ int Lexer::NextToken() {
         }
     }
 
-    if (isdigit(last_char) || last_char == '.') {
+    if (isdigit(last_char) || last_char == '.' || last_char == '-') {
         std::string num_str;
         char *end_pos = nullptr;
         auto is_double = (last_char == '.');

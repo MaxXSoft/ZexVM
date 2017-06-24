@@ -21,7 +21,7 @@ str_its:
 str_stf:
     def  "string to floating number: "
 str_array:
-    def  str_itf, str_fti, str_its, str_stf
+    def  str_itf, 0, str_fti, 0, str_its, 0, str_stf, 0
 
 string_attach_pointer:
     def  string_attach, 0
@@ -73,14 +73,12 @@ __program:
     end
 
 print:
-    mul  a1, 4
+    mul  a1, 8
     mov  a2, str_array
     add  a2, a1
-    and  a2, 0xffffffff
     mov  a1, str_result
     int  4
     ld   a1, a2
-    and  a1, 0xffffffff
     int  4
     ret
 

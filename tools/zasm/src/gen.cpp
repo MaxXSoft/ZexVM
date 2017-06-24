@@ -118,19 +118,22 @@ bool Generator::HandleOperator() {
                 auto reg = lexer_.reg_val();
                 if (Next() == ',') {
                     Next();
-                    if (tok_type == kRegister) {
-                        GenRegReg(reg, lexer_.reg_val());
-                        return true;
-                    }
-                    else if (tok_type == kNumber) {
-                        InstIntImm inst = {index, (unsigned char)(reg << 4), lexer_.num_val()};
-                        WriteBytes(out_, inst);
-                        return true;
-                    }
-                    else if (tok_type == kLabelRef) {
-                        GenRegReg(reg, 0);
-                        HandleLabelRef();
-                        return true;
+                    switch (tok_type) {
+                        case kRegister: {
+                            GenRegReg(reg, lexer_.reg_val());
+                            return true;
+                        }
+                        case kNumber: case kChar: {
+                            unsigned int imm_val = (tok_type == kNumber) ? lexer_.num_val() : lexer_.char_val();
+                            InstIntImm inst = {index, (unsigned char)(reg << 4), imm_val};
+                            WriteBytes(out_, inst);
+                            return true;
+                        }
+                        case kLabelRef: {
+                            GenRegReg(reg, 0);
+                            HandleLabelRef();
+                            return true;
+                        }
                     }
                 }
             }
@@ -178,21 +181,23 @@ bool Generator::HandleOperator() {
         }
         case kRegInt: {
             Next();
-            if (tok_type == kRegister) {
-                GenRegReg(lexer_.reg_val(), 1);
-                return true;
-            }
-            else if (tok_type == kNumber) {
-                InstIntImm inst = {index, 0, lexer_.num_val()};
-                WriteBytes(out_, inst);
-                return true;
-            }
-            else if (tok_type == kLabelRef) {
-                InstIntImm inst = {index, 0, 0};
-                WriteBytes(out_, inst);
-                out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
-                HandleLabelRef();
-                return true;
+            switch (tok_type) {
+                case kRegister: {
+                    GenRegReg(lexer_.reg_val(), 1);
+                    return true;
+                }
+                case kNumber: {
+                    InstIntImm inst = {index, 0, lexer_.num_val()};
+                    WriteBytes(out_, inst);
+                    return true;
+                }
+                case kLabelRef: {
+                    InstIntImm inst = {index, 0, 0};
+                    WriteBytes(out_, inst);
+                    out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
+                    HandleLabelRef();
+                    return true;
+                }
             }
             return false;
         }
@@ -244,14 +249,15 @@ bool Generator::HandleOperator() {
                         }
                         return true;
                     }
-                    else if (tok_type == kNumber) {
-                        if (tok_type == kLabelRef) {
+                    else if (tok_type == kNumber || tok_type == kChar) {
+                        unsigned int imm_val = (tok_type == kNumber) ? lexer_.num_val() : lexer_.char_val();
+                        if (label_mode) {
                             GenRegReg(0, 0);
                             HandleLabelRef();
-                            WriteBytes(out_, lexer_.num_val());
+                            WriteBytes(out_, imm_val);
                         }
                         else {
-                            InstDoubleInt inst = {index, 0, dst, lexer_.num_val()};
+                            InstDoubleInt inst = {index, 0, dst, imm_val};
                             WriteBytes(out_, inst);
                         }
                         return true;

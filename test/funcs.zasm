@@ -1,0 +1,44 @@
+    header
+
+__data:
+    def  0x20000
+    def  0x4000
+    def  __constant
+    def  __program
+
+__constant:
+str_test:
+    def  "test of "
+str_colon:
+    def  ": "
+str_test_neg:
+    def  "negative immediate number"
+str_array:
+    def  str_test_neg, 0
+
+__program:
+    mov  a1, 0        ; negative immediate number
+    call 1, 0, print_test
+    mov  a1, 0
+    addf a1, -120.01
+    int  3
+    call 0, 0, newline
+
+    end
+
+newline:
+    mov  a1, '\n'     ; immediate number with type of 'Char'
+    int  8
+    ret
+
+print_test:
+    mul  a1, 8
+    mov  a2, str_array
+    add  a2, a1
+    mov  a1, str_test
+    int  4
+    ld   a1, a2
+    int  4
+    mov  a1, str_colon
+    int  4
+    ret

@@ -85,37 +85,37 @@ There are 7 types of instructions in ZexVM.
 | Inst. ID | Syntax | Description |
 |---|---|---|
 | END | `END` | Mark the end of a program. |
-| AND | `AND Reg1, <Reg2|Imm>` | Reg1 &= Reg2 or Imm |
-| XOR | `XOR Reg1, <Reg2|Imm>` | Reg1 ^= Reg2 or Imm |
-| OR | `OR Reg1, <Reg2|Imm>` | Reg1 |= Reg2 or Imm |
+| AND | `AND Reg1, <Reg2/Imm>` | Reg1 &= Reg2 or Imm |
+| XOR | `XOR Reg1, <Reg2/Imm>` | Reg1 ^= Reg2 or Imm |
+| OR | `OR Reg1, <Reg2/Imm>` | Reg1 |= Reg2 or Imm |
 | NOT | `NOT Reg` | Reg = ~Reg |
-| SHL | `SHL Reg1, <Reg2|Imm>` | Reg1 <<= Reg2 or Imm |
-| SHR | `SHR Reg1, <Reg2|Imm>` | Reg1 >>= Reg2 or Imm |
-| ADD[F] | `ADD[F] Reg1, <Reg2|Imm>` | Reg1 += Reg2 or Imm |
-| SUB[F] | `SUB[F] Reg1, <Reg2|Imm>` | Reg1 -= Reg2 or Imm |
-| MUL[F] | `MUL[F] Reg1, <Reg2|Imm>` | Reg1 *= Reg2 or Imm |
-| DIV[F] | `DIV[F] Reg1, <Reg2|Imm>` | Reg1 /= Reg2 or Imm |
+| SHL | `SHL Reg1, <Reg2/Imm>` | Reg1 <<= Reg2 or Imm |
+| SHR | `SHR Reg1, <Reg2/Imm>` | Reg1 >>= Reg2 or Imm |
+| ADD[F] | `ADD[F] Reg1, <Reg2/Imm>` | Reg1 += Reg2 or Imm |
+| SUB[F] | `SUB[F] Reg1, <Reg2/Imm>` | Reg1 -= Reg2 or Imm |
+| MUL[F] | `MUL[F] Reg1, <Reg2/Imm>` | Reg1 *= Reg2 or Imm |
+| DIV[F] | `DIV[F] Reg1, <Reg2/Imm>` | Reg1 /= Reg2 or Imm |
 | NEG[F] | `NEG[F] Reg1` | Reg1 = -Reg1 |
-| MOD | `MOD Reg1, <Reg2|Imm>` | Reg1 %= Reg2 or Imm |
-| POW | `POW Reg1, <Reg2|Imm>` | Reg1 **= Reg2 or Imm |
-| LT[F] | `LT[F] Reg1, <Reg2|Imm>` | Reg1 = Reg1 < Reg2 or Imm |
-| GT[F] | `GT[F] Reg1, <Reg2|Imm>` | Reg1 = Reg1 > Reg2 or Imm |
-| LE[F] | `LE[F] Reg1, <Reg2|Imm>` | Reg1 = Reg1 <= Reg2 or Imm |
-| GE[F] | `GE[F] Reg1, <Reg2|Imm>` | Reg1 = Reg1 >= Reg2 or Imm |
-| EQ | `EQ Reg1, <Reg2|Imm>` | Reg1 = Reg1 == Reg2 or Imm |
-| NEQ | `NEQ Reg1, <Reg2|Imm>` | Reg1 = Reg1 != Reg2 or Imm |
-| JMP | `JMP <Reg1|Imm>` | PC = Reg1 or Imm |
-| JZ | `JZ Reg1, <Reg2|Imm>` | If Reg1 == 0 PC = Reg2 or Imm |
-| JNZ | `JNZ Reg1, <Reg2|Imm>` | If Reg1 != 0 PC = Reg2 or Imm |
+| MOD | `MOD Reg1, <Reg2/Imm>` | Reg1 %= Reg2 or Imm |
+| POW | `POW Reg1, <Reg2/Imm>` | Reg1 **= Reg2 or Imm |
+| LT[F] | `LT[F] Reg1, <Reg2/Imm>` | Reg1 = Reg1 < Reg2 or Imm |
+| GT[F] | `GT[F] Reg1, <Reg2/Imm>` | Reg1 = Reg1 > Reg2 or Imm |
+| LE[F] | `LE[F] Reg1, <Reg2/Imm>` | Reg1 = Reg1 <= Reg2 or Imm |
+| GE[F] | `GE[F] Reg1, <Reg2/Imm>` | Reg1 = Reg1 >= Reg2 or Imm |
+| EQ | `EQ Reg1, <Reg2/Imm>` | Reg1 = Reg1 == Reg2 or Imm |
+| NEQ | `NEQ Reg1, <Reg2/Imm>` | Reg1 = Reg1 != Reg2 or Imm |
+| JMP | `JMP <Reg1/Imm>` | PC = Reg1 or Imm |
+| JZ | `JZ Reg1, <Reg2/Imm>` | If Reg1 == 0 PC = Reg2 or Imm |
+| JNZ | `JNZ Reg1, <Reg2/Imm>` | If Reg1 != 0 PC = Reg2 or Imm |
 | CALL | `CALL ArgC, ArgStackPointer, Addr` | Call function at Addr |
 | CALL | `CALL Reg1` | Call the function according to the information in the Reg1 |
 | RET | `RET` | Return from a function call |
-| MOV | `MOV Reg1, <Reg2|Imm>` | Reg1 = Reg2 or Imm |
+| MOV | `MOV Reg1, <Reg2/Imm>` | Reg1 = Reg2 or Imm |
 | POP | `POP Reg1` | Pop the top of the stack to Reg1 |
-| PUSH | `PUSH <Reg1|Imm>` | Push Reg1 or Imm to the stack |
-| LD | `LD Reg1, <Reg2|Imm>` | Reg1 = Mem[Reg2 or Imm] |
-| ST | `ST Imm1, <Reg2|Imm2>` | Mem[Imm1] = Reg2 or Imm2 |
-| STR | `STR Reg1, <Reg2|Imm>` | Mem[Reg1] = Reg2 or Imm |
+| PUSH | `PUSH <Reg1/Imm>` | Push Reg1 or Imm to the stack |
+| LD | `LD Reg1, <Reg2/Imm>` | Reg1 = Mem[Reg2 or Imm] |
+| ST | `ST Imm1, <Reg2/Imm2>` | Mem[Imm1] = Reg2 or Imm2 |
+| STR | `STR Reg1, <Reg2/Imm>` | Mem[Reg1] = Reg2 or Imm |
 | INT | `INT Imm` | Triggering an external interrupt |
 | ITF | `ITF Reg1` | Reg1.Double = (Double)Reg1.Int |
 | FTI | `FTI Reg1` | Reg1.Int = (Int)Reg1.Double |

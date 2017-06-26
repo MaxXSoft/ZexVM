@@ -17,7 +17,7 @@ enum InstOp {
     MOV, POP, PUSH, LD, ST, STR, INT,   // Basic
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, LENS, EQS,   // String
-    ADDL, MOVL, CPL, LENL, EQL   // List
+    ADDL, MOVL, CPL, LENL, EQL, GETL, POSL   // List
 };
 
 enum InstReg {
@@ -382,7 +382,7 @@ int ZexVM::Run() {
                     return kMemoryError;
                 }
                 for (int i = 0; i < opr.list.len; ++i) {
-                    mem_[temp.list.position + temp.list.len + i] = mem_[opr.list.position + i];
+                    mem_[temp.list.position + (temp.list.len + i) * 8] = mem_[opr.list.position + i * 8];
                 }
                 temp.list.len += opr.list.len;
                 reg_x = temp.num;
@@ -391,8 +391,16 @@ int ZexVM::Run() {
             }
             case MOVL: {
                 // GC?
-                reg_x.doub = inst.imm.fp_val;
-                reg_pc += itRIF;
+                if (imm_mode) {
+                    reg_x.doub = inst.imm.fp_val;
+                    reg_pc += itRIF;
+                }
+                else {
+                    temp.list.len = reg_x.long_long;
+                    temp.list.position = reg_y.long_long;
+                    reg_x.doub = temp.num.doub;
+                    reg_pc += itRR;
+                }
                 break;
             }
             case CPL: {
@@ -405,7 +413,7 @@ int ZexVM::Run() {
                     return kProgramError;
                 }
                 for (int i = 0; i < opr.list.len; ++i) {
-                    mem_[temp.list.position + i] = mem_[opr.list.position + i];
+                    mem_[temp.list.position + i * 8] = mem_[opr.list.position + i * 8];
                 }
                 reg_pc += itRR;
                 break;
@@ -427,12 +435,29 @@ int ZexVM::Run() {
                 else {
                     reg_x.long_long = 1;
                     for (int i = 0; i < opr.list.len; ++i) {
-                        if (mem_[temp.list.position + i] != mem_[opr.list.position + i]) {
+                        if (mem_[temp.list.position + i * 8] != mem_[opr.list.position + i * 8]) {
                             reg_x.long_long = 0;
                             break;
                         }
                     }
                 }
+                reg_pc += itRR;
+                break;
+            }
+            case GETL: {
+                // TODO
+                temp.num = reg_y;
+                if (reg_x.long_long >= temp.list.len || reg_x.long_long < 0) {
+                    program_error_ = true;
+                    return kProgramError;
+                }
+                reg_x = *(Register *)(mem_.data() + temp.list.position + reg_x.long_long * 8);
+                reg_pc += itRR;
+                break;
+            }
+            case POSL: {
+                temp.num = reg_y;
+                reg_x.long_long = temp.list.position;
                 reg_pc += itRR;
                 break;
             }

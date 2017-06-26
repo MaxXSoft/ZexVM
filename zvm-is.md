@@ -127,7 +127,10 @@ There are 7 types of instructions in ZexVM.
 | LENS | `LENS Reg1, Reg2` | Reg1 = Reg2.String.Length |
 | EQS | `EQS Reg1, Reg2` | Reg1 = Reg1.String == Reg2.String |
 | ADDL | `ADDL Reg1, Reg2` | Reg1.List += Reg2.List |
-| MOVL | `MOVL Reg1, Len, Pos` | Reg1.List = List(length = Len, position = Pos) |
+| MOVL | `MOVL Reg1, Reg2` | Reg1.List = List(length = Reg1, position = Reg2) |
+| MOVL | `MOVL Reg1, Imm` | Reg1.List = List(Imm) |
 | CPL | `CPL Reg1, Reg2` | Reg1.List = Reg2.List |
 | LENL | `LENL Reg1, Reg2` | Reg1 = Reg2.List.Length |
 | EQL | `EQL Reg1, Reg2` | Reg1 = Reg1.List == Reg2.List |
+| GETL | `GETL Reg1, Reg2` | Reg1 = Reg2.List[Reg1] |
+| POSL | `POSL Reg1, Reg2` | Reg1 = Reg2.List.Position |

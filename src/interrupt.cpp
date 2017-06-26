@@ -78,11 +78,18 @@ zvm::ZValue AddString(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
 // }
 
 zvm::ZValue Flush(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
-    if (arg[0].long_long == 0) {
-        fflush(stdout);
-    }
-    else {
-        fflush(stdin);
+    switch (arg[0].long_long) {
+        case 0: {
+            fflush(stdin);
+            break;
+        }
+        case 1: {
+            fflush(stdout);
+            break;
+        }
+        default: {
+            fflush((FILE *)arg[0].long_long);
+        }
     }
     return null_value;
 }

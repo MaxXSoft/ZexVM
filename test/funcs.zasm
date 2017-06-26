@@ -20,9 +20,13 @@ str_test_clock:
     def  "clock"
 str_test_file:
     def  "file"
+str_test_string:
+    def  "string operations"
+str_test_list:
+    def  "list operations"
 str_array_test:
     def  str_test_neg, str_test_addition, str_test_clock
-    def  str_test_file
+    def  str_test_file, str_test_string, str_test_list
 
 str_test_clock_before:
     def  "before "
@@ -42,12 +46,45 @@ str_test_file_read:
     def  "read byte "
 str_test_file_close:
     def  "file closed"
+str_test_string_len:
+    def  "length "
+str_test_list_add:
+    def  "list addition"
+str_test_list_copy:
+    def  "list copy"
+
+str_temp0_pointer:
+    def  str_temp0, 0
+str_temp1_pointer:
+    def  str_temp1, 0
+str_temp2_pointer:
+    def  str_temp2, 0
+
+str_temp0:
+    def  "hello ", 0, 0, 0
+str_temp1:
+    def  "world!"
+str_temp2:
+    def  "hello world!"
+
+lst_temp0_pointer:
+    def  5, lst_temp0
+lst_temp1_pointer:
+    def  2, lst_temp1
+lst_temp2_pointer:
+    def  7, lst_temp2
+
+lst_temp0:
+    def  1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 0, 0, 0, 0
+lst_temp1:
+    def  6, 0, 7, 0
+lst_temp2:
+    def  1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0
 
 __program:
     mov  a1, 0        ; negative immediate number
     call 1, 0, print_test
-    mov  a1, 0
-    addf a1, -120.01
+    movl a1, -120.01
     int  3
     call 0, 0, newline
 
@@ -56,7 +93,7 @@ __program:
     mov  a1, str_test_addition
     int  9
     int  9
-    mov  a1, 0
+    mov  a1, 1
     int  10
     call 0, 0, newline
     call 0, 0, newline
@@ -152,6 +189,56 @@ main_for0_end_:
     int  4
     call 0, 0, newline
 main_if0_end_:
+    call 0, 0, newline
+
+    mov  a1, 4        ; string operations
+    call 1, 0, print_test
+    call 0, 0, newline
+    ld   r1, str_temp0_pointer
+    ld   r2, str_temp1_pointer
+    ld   r3, str_temp2_pointer
+    mov  a1, str_test_string_len
+    int  4
+    lens a1, r1
+    int  2
+    call 0, 0, newline
+    adds r1, r2
+    mov  a1, r1
+    int  4
+    call 0, 0, newline
+    mov  a1, r1
+    eqs  a1, r3
+    int  2
+    call 0, 0, newline
+    call 0, 0, newline
+
+    mov  a1, 5        ; list operations
+    call 1, 0, print_test
+    call 0, 0, newline
+    ld   r1, lst_temp0_pointer
+    ld   r2, lst_temp1_pointer
+    ld   r3, lst_temp2_pointer
+    mov  a1, r1
+    call 1, 0, print_list
+    mov  a1, str_test_list_add
+    int  4
+    call 0, 0, newline
+    addl r1, r2
+    mov  a1, r1
+    call 1, 0, print_list
+    mov  a1, r1
+    eql  a1, r3 ; TODO
+    int  2
+    call 0, 0, newline
+    mov  a1, str_test_list_copy
+    int  4
+    call 0, 0, newline
+    posl r4, r2
+    mov  r2, 7
+    movl r2, r4
+    cpl  r1, r2
+    mov  a1, r1
+    call 1, 0, print_list
 
     end
 
@@ -173,6 +260,27 @@ print_test:
     int  4
     ret
 
+print_list:
+    lenl a2, a1
+    mov  a3, 0
+pl_for0_:
+    mov  a4, a3
+    lt   a4, a2
+    jz   a4, pl_for0_end_
+    mov  a4, a3
+    getl a4, a1
+    push a1
+    mov  a1, a4
+    int  2
+    mov  a1, ' '
+    int  0
+    pop  a1
+    add  a3, 1
+    jmp  pl_for0_
+pl_for0_end_:
+    call 0, 0, newline
+    ret
+
 kill_time:
     mov  r1, 0
 kt_for0_:
@@ -184,4 +292,3 @@ kt_for0_:
     jmp  kt_for0_
 kt_for0_end_:
     ret
-

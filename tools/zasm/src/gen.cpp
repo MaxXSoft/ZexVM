@@ -6,11 +6,6 @@
 
 namespace {
 
-struct List {
-    unsigned int len;
-    unsigned int position;
-};
-
 struct Function {
     unsigned char reserved;
     unsigned char arg_count;
@@ -70,7 +65,7 @@ int op_type[] = {
     kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kINT,
     kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg,
-    kRegReg, kMOVL, kRegReg, kRegReg, kRegReg
+    kRegReg, kFloatImm, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg
 };
 
 std::map<std::string, unsigned int> lab_list;
@@ -271,36 +266,6 @@ bool Generator::HandleOperator() {
                 InstIntOnly inst = {index, lexer_.num_val()};
                 WriteBytes(out_, inst);
                 return true;
-            }
-            return false;
-        }
-        case kMOVL: {
-            if (Next() == kRegister && Next() == ',') {
-                auto reg = lexer_.reg_val();
-                if (Next() == kNumber) {
-                    auto count = lexer_.num_val();
-                    if (Next() == ',') {
-                        Next();
-                        List lst = {(unsigned int)(count * sizeof(List)), 0};
-                        GenRegReg(reg, 0);
-                        if (tok_type == kNumber) {
-                            lst.position = lexer_.num_val();
-                            WriteBytes(out_, lst);
-                            return true;
-                        }
-                        else if (tok_type == kLabelRef) {
-                            WriteBytes(out_, lst);
-                            out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
-                            HandleLabelRef();
-                            return true;
-                        }
-                    }
-                }
-                else if (tok_type == kFloat) {
-                    InstFloatImm inst = {index, (unsigned char)(reg << 4), lexer_.float_val()};
-                    WriteBytes(out_, inst);
-                    return true;
-                }
             }
             return false;
         }

@@ -13,7 +13,7 @@ enum InstOp {
     MOV, POP, PUSH, LD, ST, STR, INT,   // Basic
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, LENS, EQS,   // String
-    ADDL, MOVL, CPL, LENL, EQL,   // List
+    ADDL, MOVL, CPL, LENL, EQL, GETL, POSL,   // List
     DEF, HEADER   // Pseudo instruction
 };
 

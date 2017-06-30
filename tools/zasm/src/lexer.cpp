@@ -13,10 +13,10 @@ const char *op_str[] = {
     "ADD", "ADDF", "SUB", "SUBF", "MUL", "MULF", "DIV", "DIVF", "NEG", "NEGF", "MOD", "POW",
     "LT", "LTF", "GT", "GTF", "LE", "LEF", "GE", "GEF", "EQ", "NEQ",
     "JMP", "JZ", "JNZ", "CALL", "RET",
-    "MOV", "POP", "PUSH", "LD", "ST", "STR", "INT",
+    "MOV", "POP", "PUSH", "LD", "ST", "STR", "STC", "INT",
     "ITF", "FTI", "ITS", "STI", "FTS", "STF",
     "ADDS", "LENS", "EQS",
-    "ADDL", "MOVL", "CPL", "LENL", "EQL", "GETL", "POSL",
+    "ADDL", "MOVL", "CPL", "LENL", "POSL", "EQL", "GETL",
     "DEF", "HEADER"
 };
 

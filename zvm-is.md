@@ -116,6 +116,7 @@ There are 7 types of instructions in ZexVM.
 | LD | `LD Reg1, <Reg2/Imm>` | Reg1 = Mem[Reg2 or Imm] |
 | ST | `ST Imm1, <Reg2/Imm2>` | Mem[Imm1] = Reg2 or Imm2 |
 | STR | `STR Reg1, <Reg2/Imm>` | Mem[Reg1] = Reg2 or Imm |
+| STC | `STC Reg1, <Reg2/Imm>` | Mem[Reg1] = (Char)(Reg2 or Imm) |
 | INT | `INT Imm` | Triggering an external interrupt |
 | ITF | `ITF Reg1` | Reg1.Double = (Double)Reg1.Int |
 | FTI | `FTI Reg1` | Reg1.Int = (Int)Reg1.Double |
@@ -131,6 +132,6 @@ There are 7 types of instructions in ZexVM.
 | MOVL | `MOVL Reg1, Imm` | Reg1.List = List(Imm) |
 | CPL | `CPL Reg1, Reg2` | Reg1.List = Reg2.List |
 | LENL | `LENL Reg1, Reg2` | Reg1 = Reg2.List.Length |
+| POSL | `POSL Reg1, Reg2` | Reg1 = Reg2.List.Position |
 | EQL | `EQL Reg1, Reg2` | Reg1 = Reg1.List == Reg2.List |
 | GETL | `GETL Reg1, Reg2` | Reg1 = Reg2.List[Reg1] |
-| POSL | `POSL Reg1, Reg2` | Reg1 = Reg2.List.Position |

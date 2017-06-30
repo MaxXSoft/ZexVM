@@ -53,7 +53,7 @@ struct InstVoid {
 enum OpType {
     kIntImm, kFloatImm,
     kReg, kRegReg, kRegInt, kVoid,
-    kCall, kST, kINT, kMOVL
+    kCall, kST, kINT
 };
 
 int op_type[] = {
@@ -62,7 +62,7 @@ int op_type[] = {
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kReg, kReg, kIntImm, kFloatImm,
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kIntImm,
     kRegInt, kIntImm, kIntImm, kCall, kVoid,
-    kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kINT,
+    kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kIntImm, kINT,
     kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg,
     kRegReg, kFloatImm, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg

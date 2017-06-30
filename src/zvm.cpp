@@ -14,10 +14,10 @@ enum InstOp {
     ADD, ADDF, SUB, SUBF, MUL, MULF, DIV, DIVF, NEG, NEGF, MOD, POW,   // Math
     LT, LTF, GT, GTF, LE, LEF, GE, GEF, EQ, NEQ,   // Logic
     JMP, JZ, JNZ, CALL, RET,   // Jump
-    MOV, POP, PUSH, LD, ST, STR, INT,   // Basic
+    MOV, POP, PUSH, LD, ST, STR, STC, INT,   // Basic
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, LENS, EQS,   // String
-    ADDL, MOVL, CPL, LENL, EQL, GETL, POSL   // List
+    ADDL, MOVL, CPL, LENL, POSL, EQL, GETL   // List
 };
 
 enum InstReg {
@@ -79,6 +79,14 @@ inline T CalcExpression(const T &opr1, const T &opr2, int Op) {
         case NEQ: return opr1 != opr2;
         default: return 0;
     }
+}
+
+inline bool IsIllegalList(const zvm::List &list) {
+    return list.len * 8 + list.position > zvm::kMemorySize - 1;
+}
+
+inline bool IsIllegalString(const zvm::String &str) {
+    return str.position > zvm::kMemorySize - 1;
 }
 
 }
@@ -291,6 +299,15 @@ int ZexVM::Run() {
                 reg_pc += imm_mode ? itRI : itRR;
                 break;
             }
+            case STC: {
+                if (reg_x.long_long >= kMemorySize - sizeof(char)) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
+                *(mem_.data() + reg_x.long_long) = (char)(imm_mode ? inst.imm.int_val : reg_y.long_long);
+                reg_pc += imm_mode ? itRI : itRR;
+                break;
+            }
             case INT: {
                 auto opr = *(unsigned int *)(cache_.data() + reg_pc + itVOID);
                 int_manager_.TriggerInterrupt(opr, reg_, mem_);
@@ -346,7 +363,7 @@ int ZexVM::Run() {
                 temp.num = reg_x;
                 ZValue opr;
                 opr.num = reg_y;
-                if (temp.str.position > kMemorySize - 1 || opr.str.position > kMemorySize - 1) {
+                if (IsIllegalString(temp.str) || IsIllegalString(opr.str)) {
                     program_error_ = true;
                     return kMemoryError;
                 }
@@ -362,7 +379,7 @@ int ZexVM::Run() {
             case LENS: {
                 // GC
                 temp.num = reg_y;
-                if (temp.str.position > kMemorySize - 1) {
+                if (IsIllegalString(temp.str)) {
                     program_error_ = true;
                     return kMemoryError;
                 }
@@ -375,9 +392,8 @@ int ZexVM::Run() {
                 temp.num = reg_x;
                 ZValue opr;
                 opr.num = reg_y;
-                if (temp.list.len + temp.list.position > kMemorySize - 1 || 
-                        opr.list.len + opr.list.position > kMemorySize - 1 ||
-                        temp.list.position + temp.list.len + opr.list.len > kMemorySize - 1) {
+                if (IsIllegalList(temp.list) || IsIllegalList(opr.list) || 
+                        temp.list.position + temp.list.len * 8 + opr.list.len * 8 > kMemorySize - 1) {
                     program_error_ = true;
                     return kMemoryError;
                 }
@@ -408,6 +424,10 @@ int ZexVM::Run() {
                 temp.num = reg_x;
                 ZValue opr;
                 opr.num = reg_y;
+                if (IsIllegalList(temp.list) || IsIllegalList(opr.list)) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
                 if (temp.list.len != opr.list.len) {
                     program_error_ = true;
                     return kProgramError;
@@ -424,11 +444,21 @@ int ZexVM::Run() {
                 reg_pc += itRR;
                 break;
             }
+            case POSL: {
+                temp.num = reg_y;
+                reg_x.long_long = temp.list.position;
+                reg_pc += itRR;
+                break;
+            }
             case EQL: {
                 // GC
                 temp.num = reg_x;
                 ZValue opr;
                 opr.num = reg_y;
+                if (IsIllegalList(temp.list) || IsIllegalList(opr.list)) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
                 if (temp.list.len != opr.list.len) {
                     reg_x.long_long = 0;
                 }
@@ -447,17 +477,15 @@ int ZexVM::Run() {
             case GETL: {
                 // TODO
                 temp.num = reg_y;
+                if (IsIllegalList(temp.list)) {
+                    program_error_ = true;
+                    return kMemoryError;
+                }
                 if (reg_x.long_long >= temp.list.len || reg_x.long_long < 0) {
                     program_error_ = true;
                     return kProgramError;
                 }
                 reg_x = *(Register *)(mem_.data() + temp.list.position + reg_x.long_long * 8);
-                reg_pc += itRR;
-                break;
-            }
-            case POSL: {
-                temp.num = reg_y;
-                reg_x.long_long = temp.list.position;
                 reg_pc += itRR;
                 break;
             }

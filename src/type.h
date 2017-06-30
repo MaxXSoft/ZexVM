@@ -51,7 +51,7 @@ const char kArgRegisterCount = 6;
 const char kArgRegisterOffset = 8;
 
 const char kBytecodeHeaderLength = sizeof(unsigned char) * 5 + sizeof(unsigned int) * 4;
-const unsigned char kCurrentVersion[2] = {0, 3};
+const unsigned char kCurrentVersion[2] = {0, 4};
 
 enum VMReturnCode {
     kFinished, 

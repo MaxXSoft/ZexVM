@@ -7,6 +7,7 @@
 
 const unsigned char kZBCHead[3] = {0x93, 0x94, 0x86};
 const unsigned char kZBCVersion[2] = {0, 4};
+const long long kArgStackPos = 9;
 
 class Generator {
 public:

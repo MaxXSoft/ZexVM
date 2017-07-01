@@ -328,7 +328,9 @@ int Generator::Generate() {
                         switch (Next()) {
                             case kNumber: {
                                 auto num = lexer_.num_val();
-                                if (out_.tellp() == 9) arg_stack_size = num;
+                                if ((long long)out_.tellp() == kArgStackPos) {
+                                    arg_stack_size = num;
+                                }
                                 WriteBytes(out_, num);
                                 break;
                             }

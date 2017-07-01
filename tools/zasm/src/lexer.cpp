@@ -135,7 +135,7 @@ int Lexer::NextToken() {
                     num_str += last_char;
                     in_ >> last_char;
                 }
-                num_val_ = (unsigned int)strtol(num_str.c_str(), &end_pos, 16);
+                num_val_ = (unsigned int)strtoul(num_str.c_str(), &end_pos, 16);
                 return IsValidConv() ? kNumber : PrintError("invalid hex");
             }
             else if (last_char == ' ' || last_char == ';' || last_char == ',' || IsEndOfLine()) {
@@ -157,7 +157,7 @@ int Lexer::NextToken() {
             return IsValidConv() ? kFloat : PrintError("invalid floating point number");
         }
         else {
-            num_val_ = (unsigned int)strtol(num_str.c_str(), &end_pos, 0);
+            num_val_ = (unsigned int)strtoul(num_str.c_str(), &end_pos, 0);
             return IsValidConv() ? kNumber : PrintError("invalid immediate number");
         }
     }

@@ -27,7 +27,7 @@ zvm: $(zvm_targets)
 	$(cc) $(debug_arg) $(zvm_targets) -o $(zvm_out) -std=c++14 $(opt_arg)
 
 zasm: $(zasm_targets)
-	$(cc) $(debug_arg) $(zasm_targets) -o $(zasm_out) -std=c++14 $(opt_args)
+	$(cc) $(debug_arg) $(zasm_targets) -o $(zasm_out) -std=c++14 $(opt_arg)
 
 clean: clean_dbg
 	rm $(zvm_out) $(zasm_out)

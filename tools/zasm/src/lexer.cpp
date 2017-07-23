@@ -27,7 +27,7 @@ const char *reg_str[] = {
     "PC"
 };
 
-int IsOperator(const char *str, unsigned int line) {
+int IsOperator(const char *str) {
     auto len = sizeof(op_str) / sizeof(op_str[0]);
     for (int i = 0; i < len; ++i) {
         if(!strcmp(str, op_str[i])) return i;
@@ -35,7 +35,7 @@ int IsOperator(const char *str, unsigned int line) {
     return kError;
 }
 
-int IsRegister(const char *str, unsigned int line) {
+int IsRegister(const char *str) {
     auto len = sizeof(reg_str) / sizeof(reg_str[0]);
     for (int i = 0; i < len; ++i) {
         if(!strcmp(str, reg_str[i])) return i;
@@ -55,7 +55,7 @@ int GetDLE(const std::string &str) {
         case '\\': return '\\';
         case '\'': return '\'';
         case '\"': return '\"';
-        case '\0': return '\0';
+        case '0': return '\0';
         case 'x': {
             auto hex = str.substr(1);
             char *end_pos = nullptr;
@@ -100,11 +100,11 @@ int Lexer::NextToken() {
         transform(id.begin(), id.end(), id.begin(), toupper);
 
         int temp = 0;
-        if ((temp = IsOperator(id.c_str(), line_pos_)) != kError) {
+        if ((temp = IsOperator(id.c_str()/*, line_pos_*/)) != kError) {
             op_val_ = temp;
             return kOperator;
         }
-        else if ((temp = IsRegister(id.c_str(), line_pos_)) != kError) {
+        else if ((temp = IsRegister(id.c_str()/*, line_pos_*/)) != kError) {
             reg_val_ = temp;
             return kRegister;
         }
@@ -150,7 +150,7 @@ int Lexer::NextToken() {
             if (!is_double && last_char == '.') is_double = true;
             num_str += last_char;
             in_ >> last_char;
-        } while (isdigit(last_char) || last_char == '.');
+        } while (isdigit(last_char) || last_char == '.' || last_char == 'e');
 
         if (is_double) {
             float_val_ = strtod(num_str.c_str(), &end_pos);

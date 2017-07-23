@@ -84,7 +84,7 @@ lst_temp2:
 __program:
     mov  a1, 0        ; negative immediate number
     call 1, 0, print_test
-    movl a1, -120.01
+    movl a1, -120.01e2
     int  3
     call 0, 0, newline
 

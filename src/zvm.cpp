@@ -24,7 +24,7 @@ enum InstReg {
     IMM,   // marked as an immediate number
     R1, R2, R3, R4, R5, R6, R7,   // general registers
     A1, A2, A3, A4, A5, A6, RV,   // function registers
-    // (A1-A5: args, A6: arg6 or arg stack pointer, R14: ret value)
+    // (A1-A5: args, A6: arg6 or arg stack pointer, RV: ret value)
     PC   // program counter
 };
 
@@ -55,7 +55,7 @@ struct VMInst {
 
 #pragma pack()
 
-template<typename T>
+template <typename T>
 inline T CalcExpression(const T &opr1, const T &opr2, int Op) {
     switch (Op) {
         case AND: return (long long)opr1 & (long long)opr2;
@@ -121,10 +121,10 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
     file >> header[0] >> header[1] >> header[2];
     file >> version[0] >> version[1];
     if (header[0] != '\x93' || header[1] != '\x94' || header[2] != '\x86') return false;
-    if (version[0] > kCurrentVersion[0]) {
+    if (version[0] > kCurrentVersion[0] || version[0] < kMinimumVersion[0]) {
         return false;
     }
-    else if(version[1] > kCurrentVersion[1]) {
+    else if(version[1] > kCurrentVersion[1] || version[0] < kMinimumVersion[0]) {
         return false;
     }
 

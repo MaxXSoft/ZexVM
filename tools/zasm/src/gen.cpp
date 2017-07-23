@@ -53,7 +53,7 @@ struct InstVoid {
 enum OpType {
     kIntImm, kFloatImm,
     kReg, kRegReg, kRegInt, kVoid,
-    kCall, kST, kINT
+    kCall, kST, kINT, kMOVL
 };
 
 int op_type[] = {
@@ -65,7 +65,7 @@ int op_type[] = {
     kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kIntImm, kINT,
     kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg,
-    kRegReg, kFloatImm, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg
+    kRegReg, kMOVL, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg
 };
 
 std::map<std::string, unsigned int> lab_list;
@@ -266,6 +266,30 @@ bool Generator::HandleOperator() {
                 InstIntOnly inst = {index, lexer_.num_val()};
                 WriteBytes(out_, inst);
                 return true;
+            }
+            return false;
+        }
+        case kMOVL: {
+            if (Next() == kRegister) {
+                auto reg = lexer_.reg_val();
+                if (Next() == ',') {
+                    Next();
+                    if (tok_type == kRegister) {
+                        GenRegReg(reg, lexer_.reg_val());
+                        return true;
+                    }
+                    else if (tok_type == kNumber) {
+                        GenRegReg(reg, 0);
+                        auto num_val = (int)lexer_.num_val();
+                        WriteBytes(out_, (long long)num_val);
+                        return true;
+                    }
+                    else if (tok_type == kFloat) {
+                        InstFloatImm inst = {index, (unsigned char)(reg << 4), lexer_.float_val()};
+                        WriteBytes(out_, inst);
+                        return true;
+                    }
+                }
             }
             return false;
         }

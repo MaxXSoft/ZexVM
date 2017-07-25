@@ -158,7 +158,7 @@ zvm::ZValue Seek(const zvm::IntFuncArg &arg, zvm::IntFuncMem &mem) {
     return temp;
 }
 
-}
+} // namespace
 
 namespace zvm {
 
@@ -203,4 +203,4 @@ void InterruptManager::TriggerInterrupt(unsigned int index, std::array<Register,
     reg[kArgRegisterOffset + kArgRegisterCount] = ret.num;
 }
 
-}
+} // namespace zvm

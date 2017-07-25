@@ -37,7 +37,7 @@ void PrintVersion() {
     std::cout << "\033[1mhttps://github.com/MaxXSoft/ZexVM\033[0m" << std::endl;
 }
 
-}
+} // namespace
 
 int main(int argc, const char *argv[]) {
     if (argc < 2) {

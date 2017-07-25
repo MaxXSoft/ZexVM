@@ -47,7 +47,7 @@ std::string GetOutputFile(const char *input) {
     return temp;
 }
 
-}
+} // namespace
 
 int main(int argc, const char *argv[]) {
     if (argc < 2) {

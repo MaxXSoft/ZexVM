@@ -89,7 +89,7 @@ inline bool IsIllegalString(const zvm::String &str) {
     return str.position > zvm::kMemorySize - 1;
 }
 
-}
+} // namespace
 
 namespace zvm {
 
@@ -497,4 +497,4 @@ int ZexVM::Run() {
     }
 }
 
-}
+} // namespace zvm

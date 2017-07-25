@@ -32,6 +32,6 @@ private:
     InterruptManager &int_manager_;
 };
 
-}
+} // namespace zvm
 
 #endif // ZVM_ZVM_H_

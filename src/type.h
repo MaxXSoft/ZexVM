@@ -64,6 +64,6 @@ enum VMReturnCode {
 
 using Register = Number;
 
-}
+} // namespace zvm
 
 #endif // ZVM_TYPE_H_

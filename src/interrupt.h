@@ -26,6 +26,6 @@ private:
     std::vector<IntFunc> func_vector_;
 };
 
-}
+} // namespace zvm
 
 #endif // ZVM_INTERRUPT_H_

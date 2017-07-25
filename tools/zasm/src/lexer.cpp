@@ -66,7 +66,7 @@ int GetDLE(const std::string &str) {
     }
 }
 
-}
+} // namespace
 
 int Lexer::PrintError(const char *description) {
     fprintf(stderr, "\033[1mlexer\033[0m(line %u): \033[31m\033[1merror:\033[0m %s\n", line_pos_, description);

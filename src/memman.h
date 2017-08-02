@@ -1,8 +1,9 @@
 #ifndef ZVM_MEMMAN_H_
 #define ZVM_MEMMAN_H_
 
+#include "gc.h"
+
 #include <memory>
-#include <utility>
 
 namespace zvm {
 
@@ -41,8 +42,8 @@ public:
         return *(Register *)(stack_.get() + stack_ptr_ - offset);
     }
 
-    char &operator[](unsigned int index) {
-        if (index >= mem_size_) return '\0xFF';
+    char &operator[](unsigned int index) {   // exposes mem_ to the outside
+        if (index >= mem_size_) index = 0;   // TODO: dangerous
         return mem_[index];
     }
 

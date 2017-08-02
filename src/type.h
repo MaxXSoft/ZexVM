@@ -45,6 +45,7 @@ struct Value {
 
 const unsigned int kMemorySize = 1024 * 128;
 const unsigned int kCacheSize = 1024 * 512;
+const unsigned int kGCPoolSize = 1024 * 128;
 
 const char kRegisterCount = 16;
 const char kArgRegisterCount = 6;

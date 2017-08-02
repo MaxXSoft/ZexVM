@@ -131,7 +131,7 @@ int Lexer::NextToken() {
             in_ >> last_char;
             if (toupper(last_char) == 'X') {
                 in_ >> last_char;
-                while(isalnum(last_char)) {
+                while (isalnum(last_char)) {
                     num_str += last_char;
                     in_ >> last_char;
                 }
@@ -165,7 +165,7 @@ int Lexer::NextToken() {
     if (last_char == '\'') {
         std::string str;
         in_ >> last_char;
-        while(last_char != '\'') {
+        while (last_char != '\'') {
             str += last_char;
             in_ >> last_char;
             if (IsEndOfLine()) return PrintError("expected \"\'\"");
@@ -198,7 +198,7 @@ int Lexer::NextToken() {
         std::string str, temp;
         in_ >> last_char;
 
-        while(last_char != '\"') {
+        while (last_char != '\"') {
             if (last_char == '\\') {
                 in_ >> last_char;
                 if (IsEndOfLine()) return PrintError("expected \'\"\'");

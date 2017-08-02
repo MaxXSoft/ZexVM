@@ -4,7 +4,7 @@ export build_dir = build/
 export debug = false
 
 zvm_dir = src/
-zvm_targets = $(zvm_dir)main.cpp $(zvm_dir)interrupt.cpp $(zvm_dir)zvm.cpp
+zvm_targets = $(zvm_dir)main.cpp $(zvm_dir)interrupt.cpp $(zvm_dir)memman.cpp $(zvm_dir)gc.cpp $(zvm_dir)zvm.cpp
 zvm_out = $(build_dir)zvm
 
 zasm_dir = tools/zasm/src/

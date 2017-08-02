@@ -17,6 +17,11 @@ public:
     unsigned int AddObjFromMemory(char *position, unsigned int length);
     bool DeleteObj(unsigned int id);
 
+    /*
+        ReadObj
+        WriteObj
+    */
+
     bool gc_error() const { return gc_error_; }
     unsigned int pool_size() const { return pool_size_; }
 

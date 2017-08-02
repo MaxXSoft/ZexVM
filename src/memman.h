@@ -1,6 +1,7 @@
 #ifndef ZVM_MEMMAN_H_
 #define ZVM_MEMMAN_H_
 
+#include "type.h"
 #include "gc.h"
 
 #include <memory>
@@ -14,36 +15,48 @@ public:
     ~MemoryManager() {}
 
     Register ReadMemory(unsigned int position) {
-        if (position >= mem_size_) return {0};
+        if (position >= mem_size_) {
+            mem_error_ = true;
+            return {0};
+        }
         return *(Register *)(mem_.get() + position);
     }
 
     bool WriteMemory(unsigned int position, Register value) {
-        if (position >= mem_size_) return false;
+        if (position >= mem_size_) return !(mem_error_ = true);
         *(Register *)(mem_.get() + position) = value;
         return true;
     }
 
     bool Push(Register value) {
-        if (stack_ptr_ >= stack_size_ - sizeof(Register)) return false;
+        if (stack_ptr_ >= stack_size_ - sizeof(Register)) return !(mem_error_ = true);
         *(Register *)(stack_.get() + stack_ptr_) = value;
         stack_ptr_ += sizeof(Register);
         return true;
     }
 
     Register Pop() {
-        if (stack_ptr_ < sizeof(Register)) return {0};
+        if (stack_ptr_ < sizeof(Register)) {
+            mem_error_ = true;
+            return {0};
+        }
         stack_ptr_ -= sizeof(Register);
         return *(Register *)(stack_.get() + stack_ptr_);
     }
 
     Register Peek(unsigned int offset = 0) {
-        if (stack_ptr_ - offset < sizeof(Register)) return {0};
+        if (stack_ptr_ - offset < sizeof(Register)) {
+            mem_error_ = true;
+            return {0};
+        }
         return *(Register *)(stack_.get() + stack_ptr_ - offset);
     }
 
     char &operator[](unsigned int index) {   // exposes mem_ to the outside
-        if (index >= mem_size_) index = 0;   // TODO: dangerous
+        if (index >= mem_size_) {
+            index = 0;   // TODO: dangerous
+            mem_error_ = true;
+        }
         return mem_[index];
     }
 
@@ -70,6 +83,7 @@ public:
         ListCopy
     */
 
+    bool mem_error() const { return mem_error_; }
     unsigned int memory_size() const { return mem_size_; }
     unsigned int stack_size() const { return stack_size_; }
 
@@ -79,6 +93,7 @@ public:
 private:
     void ResetMemory();
 
+    bool mem_error_;
     std::unique_ptr<char[]> mem_, stack_;
     unsigned int stack_ptr_;
     unsigned int mem_size_, stack_size_;

@@ -15,7 +15,7 @@ bool GarbageCollector::Reallocate(unsigned int need_size) {
 
         // copy to new pool
         for (unsigned int j = 0; j < value.second; ++j) {
-            temp_pool_[gc_stack_ptr_ + j] = gc_pool_[value.first + i];
+            temp_pool_[gc_stack_ptr_ + j] = gc_pool_[value.first + j];
         }
         value.first = gc_stack_ptr_;
         gc_stack_ptr_ += value.second;

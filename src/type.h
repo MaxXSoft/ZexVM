@@ -64,6 +64,7 @@ enum VMReturnCode {
 };
 
 using Register = Number;
+using MemSizeT = unsigned int;   // type that can storage memory size
 
 } // namespace zvm
 

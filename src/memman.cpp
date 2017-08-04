@@ -13,7 +13,7 @@ void MemoryManager::ResetMemory() {
 }
 
 String MemoryManager::AddStringObj(MemSizeT position) {
-    auto ReturnError = [&]() {
+    auto ReturnError = [this]() {
         mem_error_ = true;
         String str = {0, 0};
         return str;
@@ -26,7 +26,7 @@ String MemoryManager::AddStringObj(MemSizeT position) {
 }
 
 List MemoryManager::AddListObj(MemSizeT position, MemSizeT length) {
-    auto ReturnError = [&]() {
+    auto ReturnError = [this]() {
         mem_error_ = true;
         List list = {0, 0};
         return list;
@@ -74,7 +74,7 @@ bool MemoryManager::StringCompare(String str1, String str2) {
 }
 
 String MemoryManager::StringCatenate(String str1, String str2) {
-    auto ReturnError = [&]() {
+    auto ReturnError = [this]() {
         mem_error_ = true;
         String str = {0, 0};
         return str;
@@ -103,7 +103,7 @@ Register MemoryManager::StringLength(String str) {
 }
 
 String MemoryManager::StringCopy(String str) {
-    auto ReturnError = [&]() {
+    auto ReturnError = [this]() {
         mem_error_ = true;
         String str = {0, 0};
         return str;
@@ -121,36 +121,36 @@ String MemoryManager::StringCopy(String str) {
 
 bool MemoryManager::ListCompare(List list1, List list2) {
     if (list1.len != list2.len) return false;
-    auto obj1 = gc_.AccessObj(list1.position);
-    auto obj2 = gc_.AccessObj(list2.position);
+    auto obj1 = (Register *)gc_.AccessObj(list1.position);
+    auto obj2 = (Register *)gc_.AccessObj(list2.position);
     if (!obj1 || !obj2) return false;
-    for (MemSizeT i = 0; i < list1.len * sizeof(Register); ++i) {
-        if (obj1[i] != obj2[i]) return false;
+    for (MemSizeT i = 0; i < list1.len; ++i) {
+        if (obj1[i].long_long != obj2[i].long_long) return false;
     }
     return true;
 }
 
 List MemoryManager::ListCatenate(List list1, List list2) {
-    auto ReturnError = [&]() {
+    auto ReturnError = [this]() {
         mem_error_ = true;
         List list = {0, 0};
         return list;
     };
 
-    auto obj1 = gc_.AccessObj(list1.position);
-    auto obj2 = gc_.AccessObj(list2.position);
+    auto obj1 = (Register *)gc_.AccessObj(list1.position);
+    auto obj2 = (Register *)gc_.AccessObj(list2.position);
     if (!obj1 || !obj2) ReturnError();
 
     auto len = list1.len + list2.len;
     auto id = gc_.AddObj(len * sizeof(Register));
     if (gc_.gc_error()) ReturnError();
-    auto obj = gc_.AccessObj(id);
+    auto obj = (Register *)gc_.AccessObj(id);
 
-    for (MemSizeT i = 0; i < list1.len * sizeof(Register); ++i) {
+    for (MemSizeT i = 0; i < list1.len; ++i) {
         obj[i] = obj1[i];
     }
-    for (MemSizeT i = 0; i < list2.len * sizeof(Register); ++i) {
-        obj[list1.len * sizeof(Register) + i] = obj1[i];
+    for (MemSizeT i = 0; i < list2.len; ++i) {
+        obj[list1.len + i] = obj1[i];
     }
 
     gc_.DeleteObj(list1.position);
@@ -163,7 +163,7 @@ Register MemoryManager::ListLength(List list) {
 }
 
 List MemoryManager::ListCopy(List list) {
-    auto ReturnError = [&]() {
+    auto ReturnError = [this]() {
         mem_error_ = true;
         List list = {0, 0};
         return list;

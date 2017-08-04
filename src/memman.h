@@ -1,10 +1,10 @@
 #ifndef ZVM_MEMMAN_H_
 #define ZVM_MEMMAN_H_
 
+#include <memory>
+
 #include "type.h"
 #include "gc.h"
-
-#include <memory>
 
 namespace zvm {
 

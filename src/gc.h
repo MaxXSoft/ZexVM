@@ -1,12 +1,12 @@
 #ifndef ZVM_GC_H_
 #define ZVM_GC_H_
 
-#include "type.h"
-
 #include <memory>
 #include <utility>
 #include <map>
 #include <deque>
+
+#include "type.h"
 
 namespace zvm {
 

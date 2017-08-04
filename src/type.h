@@ -9,11 +9,12 @@ union Number {
 };
 
 struct String {
-    unsigned long long position;
+    unsigned int len;   // without '\0'
+    unsigned int position;
 };
 
 struct List {
-    unsigned int len;
+    unsigned int len;   // count of items in a list
     unsigned int position;
 };
 
@@ -21,6 +22,7 @@ struct Function {
     unsigned char reserved;
     unsigned char arg_count;
     unsigned short arg_stack_pointer;
+    // unsigned int env_pointer;
     unsigned int position;
 };
 
@@ -31,7 +33,7 @@ union ZValue {
     Function func;
 };
 
-enum ZValueType {
+enum ZValueType : char {
     kNumber, 
     kString, 
     kList, 
@@ -43,9 +45,10 @@ struct Value {
     char type;
 };
 
-const unsigned int kMemorySize = 1024 * 128;
-const unsigned int kCacheSize = 1024 * 512;
-const unsigned int kGCPoolSize = 1024 * 128;
+const unsigned int kMemorySize = 1024 * 32;   // 32k
+const unsigned int kStackSize = 1024 * 16;    // 16k
+const unsigned int kCacheSize = 1024 * 512;   // 512k
+const unsigned int kGCPoolSize = 1024 * 128;  // 128k
 
 const char kRegisterCount = 16;
 const char kArgRegisterCount = 6;

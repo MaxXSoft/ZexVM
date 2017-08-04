@@ -10,31 +10,43 @@
 
 namespace zvm {
 
-namespace gc {
+// namespace gc {
 
-class GCObject {
-public:
-    GCObject(char *mem, MemSizeT length)
-            : undefined_('\0'), mem_(mem), length_(length) {}
-    ~GCObject() {}
+// class GCObject {
+// public:
+//     GCObject(char *mem, MemSizeT length)
+//             : mem_(mem), length_(length) {}
+//     ~GCObject() {}
 
-    char &operator[](MemSizeT index) {
-        if (index >= length_) return undefined_;
-        return mem_[index];
-    }
+//     char &operator[](MemSizeT index) {
+//         if (index >= length_) return undefined_[0];
+//         return mem_[index];
+//     }
 
-    const char &operator[](MemSizeT index) const {
-        if (index >= length_) return undefined_;
-        return mem_[index];
-    }
+//     const char &operator[](MemSizeT index) const {
+//         if (index >= length_) return undefined_[0];
+//         return mem_[index];
+//     }
 
-private:
-    char *mem_;
-    char undefined_;
-    MemSizeT length_;
-};
+//     Register &operator()(MemSizeT index) {
+//         if (index * sizeof(Register) >= length_) return *(Register *)undefined_;
+//         return *(Register *)(mem_ + index * sizeof(Register));
+//     }
 
-} // namespace gc
+//     const Register &operator()(MemSizeT index) const {
+//         if (index * sizeof(Register) >= length_) return *(Register *)undefined_;
+//         return *(Register *)(mem_ + index * sizeof(Register));
+//     }
+
+//     MemSizeT length() const { return length_; }
+
+// private:
+//     char *mem_;
+//     char undefined_[sizeof(Register)];
+//     MemSizeT length_;
+// };
+
+// } // namespace gc
 
 class GarbageCollector {
 public:
@@ -43,10 +55,12 @@ public:
 
     void ResetGC();
 
+    unsigned int AddObj(MemSizeT length);
     unsigned int AddObjFromMemory(char *position, MemSizeT length);
     bool DeleteObj(unsigned int id);
 
-    std::unique_ptr<gc::GCObject> AccessObj(unsigned int id);
+    char *AccessObj(unsigned int id);
+    MemSizeT GetObjLength(unsigned int id);
 
     // bool FindId(unsigned int id) { return obj_set_.find(id) != obj_set_.end(); }
 

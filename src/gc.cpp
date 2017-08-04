@@ -27,8 +27,8 @@ bool GarbageCollector::Reallocate(MemSizeT need_size) {
 
 unsigned int GarbageCollector::GetId()  {
     if (!free_id_.empty()) {   // reuse id that has already beed deleted
-        auto id = free_id_.front();
-        free_id_.pop_front();
+        auto id = free_id_.back();
+        free_id_.pop_back();
         return id;
     }
     else {
@@ -44,7 +44,7 @@ void GarbageCollector::ResetGC()  {
     gc_error_ = false;
 }
 
-unsigned int GarbageCollector::AddObjFromMemory(char *position, MemSizeT length) {
+unsigned int GarbageCollector::AddObj(MemSizeT length) {
     // full GC
     if (gc_stack_ptr_ + length >= pool_size_) {
         if (!Reallocate(length)) {   // completely full
@@ -52,7 +52,7 @@ unsigned int GarbageCollector::AddObjFromMemory(char *position, MemSizeT length)
             return 0xFFFFFFFF;
         }
     }
-
+    
     auto new_id = GetId();
     // run out of obj id
     if (obj_id_ == 0xFFFFFFFF) {
@@ -60,13 +60,20 @@ unsigned int GarbageCollector::AddObjFromMemory(char *position, MemSizeT length)
         return obj_id_;
     }
 
-    // copy to GC pool
-    for (MemSizeT i = 0; i < length; ++i) {
-        gc_pool_[gc_stack_ptr_ + i] = position[i];
-    }
-
     obj_set_.insert({new_id, {gc_stack_ptr_, length}});
     gc_stack_ptr_ += length;
+    return new_id;
+}
+
+unsigned int GarbageCollector::AddObjFromMemory(char *position, MemSizeT length) {
+    auto new_id = AddObj(length);
+    if (gc_error_) return new_id;
+
+    // copy to GC pool
+    for (MemSizeT i = 0; i < length; ++i) {
+        gc_pool_[gc_stack_ptr_ - length + i] = position[i];
+    }
+
     return new_id;
 }
 
@@ -82,11 +89,17 @@ bool GarbageCollector::DeleteObj(unsigned int id) {
     }
 }
 
-std::unique_ptr<gc::GCObject> GarbageCollector::AccessObj(unsigned int id) {
+char *GarbageCollector::AccessObj(unsigned int id) {
     auto it = obj_set_.find(id);
     if (it == obj_set_.end()) return nullptr;
     const auto &value = it->second;
-    return std::make_unique<gc::GCObject>(gc_pool_.get() + value.first, value.second);
+    return gc_pool_.get() + value.first;
+}
+
+MemSizeT GarbageCollector::GetObjLength(unsigned int id) {
+    auto it = obj_set_.find(id);
+    if (it == obj_set_.end()) return 0;
+    return it->second.second;
 }
 
 } // namespace zvm

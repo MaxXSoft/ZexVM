@@ -3,12 +3,15 @@
 
 #include <map>
 #include <string>
+#include <functional>
 
 namespace xstl {
 
+using StrRef = const std::string &;
+
 class ArgumentHandler {
 public:
-    using HandFunc = void (*)(const std::string &);
+    using HandFunc = std::function<int(StrRef)>;
 
     ArgumentHandler() {}
     ~ArgumentHandler() {}
@@ -38,15 +41,15 @@ public:
             else {
                 auto it = handlers_.find("");
                 if (it == handlers_.end()) return ErrorHandler(argv[i]);
-                it->second(argv[i]);
+                if (it->second(argv[i])) return false;
             }
         }
         return true;
     }
 
-    void AddHandler(std::string arg_name, HandFunc handler) { handlers_[arg_name] = handler; }
+    void AddHandler(const std::string &arg_name, HandFunc handler) { handlers_[arg_name] = handler; }
     void SetErrorHandler(HandFunc error_handler) { error_handler_ = error_handler; }
-    void AddAlias(std::string alias, std::string source) { if (handlers_[source]) alias_dict_[alias] = handlers_[source]; }
+    void AddAlias(const std::string &alias, const std::string &source) { if (handlers_[source]) alias_dict_[alias] = handlers_[source]; }
 
 private:
     std::map<std::string, HandFunc> handlers_;

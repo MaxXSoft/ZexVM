@@ -7,6 +7,7 @@
 #include "type.h"
 #include "interrupt.h"
 #include "zvm.h"
+#include "xstl/argh.h"
 
 using namespace zvm;
 
@@ -19,10 +20,10 @@ void PrintMessage(const std::string &str, int msg_code = 0) {
 }
 
 void PrintHelp() {
-    std::cout << "usage: zvm <bytecode file | options>" << std::endl;
+    std::cout << "usage: zvm <bytecode files | options>" << std::endl;
     std::cout << "options:" << std::endl;
-    std::cout << "  --help\t\tDisplay this help information" << std::endl;
-    std::cout << "  --version\t\tDisplay zasm version information" << std::endl;
+    std::cout << "  -h --help\t\tDisplay this help information" << std::endl;
+    std::cout << "  -v --version\t\tDisplay zasm version information" << std::endl;
     std::cout << "For bug reporting instructions, please see:" << std::endl;
     std::cout << "\033[1mhttps://github.com/MaxXSoft/ZexVM/issues\033[0m" << std::endl;
 }
@@ -40,23 +41,32 @@ void PrintVersion() {
 } // namespace
 
 int main(int argc, const char *argv[]) {
-    if (argc < 2) {
-        PrintMessage("invalid command\ninput \"zvm --help\" for help");
+    xstl::ArgumentHandler argh;
+    std::ifstream in;
+
+    auto PrintError = [](xstl::StrRef v) {
+        std::cout << "invalid command ";
+        if (v != "") std::cout << "'" << v << "'";
+        std::cout << std::endl << "input \"zvm --help\" for help" << std::endl;
+        return 1;
+    };
+
+    if (argc < 2) PrintError("");
+
+    argh.SetErrorHandler(PrintError);
+    argh.AddHandler("h", [](xstl::StrRef v) { PrintHelp(); return 1; });
+    argh.AddAlias("help", "h");
+    argh.AddHandler("v", [](xstl::StrRef v) { PrintVersion(); return 1; });
+    argh.AddAlias("version", "v");
+    argh.AddHandler("", [&in](xstl::StrRef v) {
+        in.open(v, std::ios_base::binary);
         return 0;
-    }
-    if (!strcmp(argv[1], "--help")) {
-        PrintHelp();
-        return 0;
-    }
-    if (!strcmp(argv[1], "--version")) {
-        PrintVersion();
-        return 0;
-    }
+    });
+
+    if (!argh.ParseArguments(argc, argv)) return 0;
 
     InterruptManager int_manager;
     ZexVM vm(int_manager);
-    std::ifstream in;
-    in.open(argv[1], std::ios_base::in | std::ios_base::binary);
 
     if (vm.LoadProgram(in)) {
         auto ret_val = vm.Run();

@@ -10,43 +10,47 @@
 
 namespace zvm {
 
-// namespace gc {
+namespace gc {
 
-// class GCObject {
-// public:
-//     GCObject(char *mem, MemSizeT length)
-//             : mem_(mem), length_(length) {}
-//     ~GCObject() {}
+class GCObject {
+public:
+    using ElemList = std::deque<unsigned int>;
 
-//     char &operator[](MemSizeT index) {
-//         if (index >= length_) return undefined_[0];
-//         return mem_[index];
-//     }
+    GCObject(MemSizeT position, MemSizeT length)
+            : position_(position), length_(length), reachable_(false) {}
+    ~GCObject() {}
 
-//     const char &operator[](MemSizeT index) const {
-//         if (index >= length_) return undefined_[0];
-//         return mem_[index];
-//     }
+    MemSizeT position() const { return position_; }
+    MemSizeT length() const { return length_; }
+    bool reachable() const { return reachable_; }
+    const ElemList &elem_list() const { return elem_list_; }
 
-//     Register &operator()(MemSizeT index) {
-//         if (index * sizeof(Register) >= length_) return *(Register *)undefined_;
-//         return *(Register *)(mem_ + index * sizeof(Register));
-//     }
+    void set_position(MemSizeT position) { position_ = position; }
+    void set_reachable(bool reachable) { reachable_ = reachable; }
 
-//     const Register &operator()(MemSizeT index) const {
-//         if (index * sizeof(Register) >= length_) return *(Register *)undefined_;
-//         return *(Register *)(mem_ + index * sizeof(Register));
-//     }
+    void AddElem(unsigned int id) {
+        if (elem_list_.empty() || elem_list_.back() != id) {
+            elem_list_.push_back(id);
+        }
+    }
 
-//     MemSizeT length() const { return length_; }
+    void DelElem(unsigned int id) {
+        for (auto &&i : elem_list_) {
+            if (i == id) {
+                i = elem_list_.back();
+                elem_list_.pop_back();
+                break;
+            }
+        }
+    }
 
-// private:
-//     char *mem_;
-//     char undefined_[sizeof(Register)];
-//     MemSizeT length_;
-// };
+private:
+    MemSizeT position_, length_;
+    bool reachable_;
+    ElemList elem_list_;
+};
 
-// } // namespace gc
+} // namespace gc
 
 class GarbageCollector {
 public:

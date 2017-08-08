@@ -3,26 +3,50 @@
 namespace zvm {
 
 bool GarbageCollector::Reallocate(MemSizeT need_size) {
+    // reset reachable status
+    for (auto &&i : obj_set_) i.second.set_reachable(false);
+    // mark unreachable object recursively
+    Trace(root_id_);
+
     temp_pool_ = std::make_unique<char[]>(pool_size_);   // TODO
     gc_stack_ptr_ = 0;
     auto total_size = need_size;
 
-    for (auto &&i : obj_set_) {
-        auto &value = i.second;
-        total_size += value.second;
-        // completely full
-        if (total_size > pool_size_) return false;
-
-        // copy to new pool
-        for (MemSizeT j = 0; j < value.second; ++j) {
-            temp_pool_[gc_stack_ptr_ + j] = gc_pool_[value.first + j];
+    for (auto i = obj_set_.begin(); i != obj_set_.end(); ) {
+        auto &gco = i->second;
+        // sweep unreachable object
+        if (!gco.reachable()) {
+            free_id_.push_back(i->first);
+            i = obj_set_.erase(i);
         }
-        value.first = gc_stack_ptr_;
-        gc_stack_ptr_ += value.second;
+        else {
+            total_size += gco.length();
+            // completely full
+            if (total_size > pool_size_) return false;
+            // copy to new pool
+            for (MemSizeT j = 0; j < gco.length(); ++j) {
+                temp_pool_[gc_stack_ptr_ + j] = gc_pool_[gco.position() + j];
+            }
+            gco.set_position(gc_stack_ptr_);
+            gc_stack_ptr_ += gco.length();
+            ++i;   // increase iterator
+        }
     }
     
     gc_pool_ = std::move(temp_pool_);
     return true;
+}
+
+void GarbageCollector::Trace(unsigned int id) {
+    auto it = obj_set_.find(id);
+    if (it == obj_set_.end()) return;
+    auto &gco = it->second;
+    gco.set_reachable(true);
+    if (gco.elem_list().empty()) return;
+    for (const auto &i : gco.elem_list()) {
+        auto it = obj_set_.find(i);
+        if (it != obj_set_.end() && !it->second.reachable()) Trace(i);
+    }
 }
 
 unsigned int GarbageCollector::GetId()  {
@@ -39,7 +63,7 @@ unsigned int GarbageCollector::GetId()  {
 void GarbageCollector::ResetGC()  {
     gc_pool_ = std::make_unique<char[]>(pool_size_);
     gc_stack_ptr_ = 0;
-    obj_id_ = 0;
+    obj_id_ = root_id_ = 0;
     free_id_.clear();
     gc_error_ = false;
 }
@@ -60,7 +84,7 @@ unsigned int GarbageCollector::AddObj(MemSizeT length) {
         return obj_id_;
     }
 
-    obj_set_.insert({new_id, {gc_stack_ptr_, length}});
+    obj_set_.insert({new_id, gc::GCObject(gc_stack_ptr_, length)});
     gc_stack_ptr_ += length;
     return new_id;
 }
@@ -85,21 +109,48 @@ bool GarbageCollector::DeleteObj(unsigned int id) {
         return true;
     }
     else {
-        return false;
+        return !(gc_error_ = true);   // false
     }
 }
 
+void GarbageCollector::AddElem(unsigned int obj_id, unsigned int elem_id) {
+    auto it = obj_set_.find(obj_id);
+    if (it != obj_set_.end() && obj_set_.find(elem_id) != obj_set_.end()) {
+        it->second.AddElem(elem_id);
+    }
+    else {
+        gc_error_ = true;
+    }
+}
+
+void GarbageCollector::DelElem(unsigned int obj_id, unsigned int elem_id) {
+    auto it = obj_set_.find(obj_id);
+    if (it != obj_set_.end()) {
+        it->second.DelElem(elem_id);
+    }
+    else {
+        gc_error_ = true;
+    }
+}
+
+
 char *GarbageCollector::AccessObj(unsigned int id) {
     auto it = obj_set_.find(id);
-    if (it == obj_set_.end()) return nullptr;
-    const auto &value = it->second;
-    return gc_pool_.get() + value.first;
+    if (it == obj_set_.end()) {
+        gc_error_ = true;
+        return nullptr;
+    }
+    const auto &gco = it->second;
+    return gc_pool_.get() + gco.position();
 }
 
 MemSizeT GarbageCollector::GetObjLength(unsigned int id) {
     auto it = obj_set_.find(id);
-    if (it == obj_set_.end()) return 0;
-    return it->second.second;
+    if (it == obj_set_.end()) {
+        gc_error_ = true;
+        return 0;
+    }
+    return it->second.length();
 }
 
 } // namespace zvm

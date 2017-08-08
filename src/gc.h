@@ -17,7 +17,7 @@ public:
     using ElemList = std::deque<unsigned int>;
 
     GCObject(MemSizeT position, MemSizeT length)
-            : position_(position), length_(length), reachable_(false) {}
+            : position_(position), length_(length) {}
     ~GCObject() {}
 
     MemSizeT position() const { return position_; }
@@ -28,11 +28,8 @@ public:
     void set_position(MemSizeT position) { position_ = position; }
     void set_reachable(bool reachable) { reachable_ = reachable; }
 
-    void AddElem(unsigned int id) {
-        if (elem_list_.empty() || elem_list_.back() != id) {
-            elem_list_.push_back(id);
-        }
-    }
+    // will not check if id is repeated
+    void AddElem(unsigned int id) { elem_list_.push_back(id); }
 
     void DelElem(unsigned int id) {
         for (auto &&i : elem_list_) {
@@ -62,25 +59,27 @@ public:
     unsigned int AddObj(MemSizeT length);
     unsigned int AddObjFromMemory(char *position, MemSizeT length);
     bool DeleteObj(unsigned int id);
+    void SetRootObj(unsigned int id) { root_id_ = id; }
+    void AddElem(unsigned int obj_id, unsigned int elem_id);
+    void DelElem(unsigned int obj_id, unsigned int elem_id);
 
     char *AccessObj(unsigned int id);
     MemSizeT GetObjLength(unsigned int id);
-
-    // bool FindId(unsigned int id) { return obj_set_.find(id) != obj_set_.end(); }
 
     bool gc_error() const { return gc_error_; }
     MemSizeT pool_size() const { return pool_size_; }
 
 private:
     bool Reallocate(MemSizeT need_size);
+    void Trace(unsigned int id);
     unsigned int GetId();
 
     bool gc_error_;
     MemSizeT pool_size_, gc_stack_ptr_;
-    unsigned int obj_id_;
+    unsigned int obj_id_, root_id_;
     std::unique_ptr<char[]> gc_pool_, temp_pool_;
-    // map: <id, <position, length>>
-    std::map<unsigned int, std::pair<MemSizeT, MemSizeT>> obj_set_;
+    // map: <id, GCObject>
+    std::map<unsigned int, gc::GCObject> obj_set_;
     std::deque<unsigned int> free_id_;
 };
 

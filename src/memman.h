@@ -67,6 +67,9 @@ public:
     const char *GetStringObj(String str);
     Register GetListItem(List list, MemSizeT index);
     bool SetListItem(List list, MemSizeT index, Register value);
+    void SetRootEnv(List env) { gc_.SetRootObj(env.position); }
+    void AddListRef(List list, List ref);
+    void DelListRef(List list, List ref);
 
     bool StringCompare(String str1, String str2);
     String StringCatenate(String str1, String str2);

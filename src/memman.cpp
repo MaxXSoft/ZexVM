@@ -66,6 +66,16 @@ bool MemoryManager::SetListItem(List list, MemSizeT index, Register value) {
     return true;
 }
 
+void MemoryManager::AddListRef(List list, List ref) {
+    gc_.AddElem(list.position, ref.position);
+    if (gc_.gc_error()) mem_error_ = true;
+}
+
+void MemoryManager::DelListRef(List list, List ref) {
+    gc_.DelElem(list.position, ref.position);
+    if (gc_.gc_error()) mem_error_ = true;
+}
+
 bool MemoryManager::StringCompare(String str1, String str2) {
     if (str1.len != str2.len) return false;
     auto obj1 = gc_.AccessObj(str1.position);

@@ -146,6 +146,14 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
 int ZexVM::Run() {
 #define reg_x reg_[rx_index]
 #define reg_y reg_[ry_index]
+#define NEXT(inst_len) \
+        reg_pc += (inst_len); \
+        if (reg_pc >= kCacheSize) goto _PERR; \
+        inst = (VMInst *)(cache_.data() + reg_pc); \
+        rx_index = inst->reg >> 4; \
+        ry_index = inst->reg & 0x0F; \
+        imm_mode = !(inst->reg & 0x0F); \
+        goto *inst_list[inst->op];
 
     if (program_error_) return kProgramError;
 
@@ -167,16 +175,7 @@ int ZexVM::Run() {
         &&_ADDL, &&_MOVL, &&_CPL, &&_LENL, &&_POSL, &&_EQL, &&_GETL
     };
 
-    #define Next(inst_len) \
-        reg_pc += (inst_len); \
-        if (reg_pc >= kCacheSize) goto _PERR; \
-        inst = (VMInst *)(cache_.data() + reg_pc); \
-        rx_index = inst->reg >> 4; \
-        ry_index = inst->reg & 0x0F; \
-        imm_mode = !(inst->reg & 0x0F); \
-        goto *inst_list[inst->op];
-
-    Next(0);   // start running
+    NEXT(0);   // start running
 
     _PERR: program_error_ = true; return kProgramError;
     _SERR: program_error_ = true; return kStackError;
@@ -188,44 +187,44 @@ int ZexVM::Run() {
     _AND: _XOR: _OR: _SHL: _SHR: _ADD: _SUB: _MUL: _DIV: _MOD: _LT:
     _GT: _LE: _GE: _EQ: _NEQ: {
         reg_x.long_long = CalcExpression(reg_x.long_long, (imm_mode ? (long long)inst->imm.int_val : reg_y.long_long), inst->op);
-        Next(imm_mode ? itRI : itRR);
+        NEXT(imm_mode ? itRI : itRR);
     }
     _ADDF: _SUBF: _MULF: _DIVF: _POW: {
         reg_x.doub = CalcExpression(reg_x.doub, (imm_mode ? inst->imm.fp_val : reg_y.doub), inst->op);
-        Next(imm_mode ? itRIF : itRR);
+        NEXT(imm_mode ? itRIF : itRR);
     }
     _LTF: _GTF: _LEF: _GEF: {
         reg_x.long_long = (long long)CalcExpression(reg_x.doub, (imm_mode ? inst->imm.fp_val : reg_y.doub), inst->op);
-        Next(imm_mode ? itRIF : itRR);
+        NEXT(imm_mode ? itRIF : itRR);
     }
     _NOT: _NEG: {
         reg_x.long_long = CalcExpression(reg_x.long_long, 0LL, inst->op);
-        Next(itR);
+        NEXT(itR);
     }
     _NEGF: {
         reg_x.doub = -reg_x.doub;
-        Next(itR);
+        NEXT(itR);
     }
     _JMP: {
         reg_pc = imm_mode ? inst->imm.int_val : reg_x.long_long;
-        Next(0);
+        NEXT(0);
     }
     _JZ: {
         if (reg_x.long_long == 0) {
             reg_pc = imm_mode ? inst->imm.int_val : reg_x.long_long;
-            Next(0);
+            NEXT(0);
         }
         else {
-            Next(imm_mode ? itRI : itRR);
+            NEXT(imm_mode ? itRI : itRR);
         }
     }
     _JNZ: {
         if (reg_x.long_long != 0) {
             reg_pc = imm_mode ? inst->imm.int_val : reg_x.long_long;
-            Next(0);
+            NEXT(0);
         }
         else {
-            Next(imm_mode ? itRI : itRR);
+            NEXT(imm_mode ? itRI : itRR);
         }
     }
     _CALL: {   // TODO
@@ -236,32 +235,32 @@ int ZexVM::Run() {
         reg_pc += imm_mode ? itRIF : itR;
         if (!mem_.Push(reg_[PC])) goto _SERR;
         reg_pc = temp.func.position;
-        Next(0);
+        NEXT(0);
     }
     _RET: {
         reg_pc = mem_.Pop().long_long;
         if (mem_.mem_error()) goto _SERR;
-        Next(0);
+        NEXT(0);
     }
     _MOV: {
         reg_x.long_long = imm_mode ? inst->imm.int_val : reg_y.long_long;
-        Next(imm_mode ? itRI : itRR);
+        NEXT(imm_mode ? itRI : itRR);
     }
     _POP: {
         reg_x = mem_.Pop();
         if (mem_.mem_error()) goto _SERR;
-        Next(itR);
+        NEXT(itR);
     }
     _PUSH: {
         temp.num.long_long = inst->imm.int_val;
         if (!mem_.Push(imm_mode ? temp.num : reg_x)) goto _SERR;
-        Next(imm_mode ? itRI : itR);
+        NEXT(imm_mode ? itRI : itR);
     }
     _LD: {
         temp.num.long_long = imm_mode ? inst->imm.int_val : reg_y.long_long;
         reg_x = mem_(temp.num.long_long);
         if (mem_.mem_error()) goto _MERR;
-        Next(imm_mode ? itRI : itRR);
+        NEXT(imm_mode ? itRI : itRR);
     }
     _ST: {
         // ST: I, R/I;   inst->imm -> I, reg_x/temp.num -> R/I
@@ -269,38 +268,38 @@ int ZexVM::Run() {
             temp.num.long_long = *(unsigned int *)(cache_.data() + reg_pc + itRI);
             mem_(inst->imm.int_val) = temp.num;
             if (mem_.mem_error()) goto _MERR;
-            Next(itII);
+            NEXT(itII);
         }
         else {
             mem_(inst->imm.int_val) = reg_x;
             if (mem_.mem_error()) goto _MERR;
-            Next(itRI);
+            NEXT(itRI);
         }
     }
     _STR: {
         temp.num.long_long = inst->imm.int_val;
         mem_(reg_x.long_long) = imm_mode ? temp.num : reg_y;
         if (mem_.mem_error()) goto _MERR;
-        Next(imm_mode ? itRI : itRR);
+        NEXT(imm_mode ? itRI : itRR);
     }
     _STC: {
         mem_[reg_x.long_long] = (char)(imm_mode ? inst->imm.int_val : reg_y.long_long);
         if (mem_.mem_error()) goto _MERR;
-        Next(imm_mode ? itRI : itRR);
+        NEXT(imm_mode ? itRI : itRR);
     }
     _INT: {
         auto opr = *(unsigned int *)(cache_.data() + reg_pc + itVOID);
         if (!int_manager_.TriggerInterrupt(opr, reg_, mem_)) goto _PERR;
         if (mem_.mem_error()) goto _MERR;
-        Next(itI);
+        NEXT(itI);
     }
     _ITF: {
         reg_x.doub = (double)reg_x.long_long;
-        Next(itR);
+        NEXT(itR);
     }
     _FTI: {
         reg_x.long_long = (long long)reg_x.doub;
-        Next(itR);
+        NEXT(itR);
     }
     _ITS: _FTS: {
         std::string str;
@@ -314,7 +313,7 @@ int ZexVM::Run() {
         if (!mem_.SetRawString(temp.str, str.c_str())) goto _MERR;
         reg_x = temp.num;
     }
-    Next(itRR);
+    NEXT(itRR);
     _STI: _STF: {
         temp.num = reg_y;
         auto ptr = mem_.GetRawString(temp.str);
@@ -325,7 +324,7 @@ int ZexVM::Run() {
         else {
             reg_x.doub = strtod(ptr, nullptr);
         }
-        Next(itRR);
+        NEXT(itRR);
     }
     _ADDS: _EQS: {
         temp.num = reg_x;
@@ -338,59 +337,60 @@ int ZexVM::Run() {
             reg_x.long_long = mem_.StringCompare(temp.str, opr.str);
             if (mem_.mem_error()) goto _MERR;
         }
-        Next(itRR);
+        NEXT(itRR);
     }
     _LENS: {
         temp.num = reg_y;
         reg_x.long_long = mem_.StringLength(temp.str);
-        Next(itRR);
+        NEXT(itRR);
     }
     _ADDL: {
         temp.num = reg_x;
         ZValue opr = {reg_y};
         if (!mem_.ListCatenate(temp.list, opr.list)) goto _MERR;
         reg_x = temp.num;
-        Next(itRR);
+        NEXT(itRR);
     }
     _MOVL: {
         if (!imm_mode) goto _PERR;   // imm_mode ONLY!
         reg_x.doub = inst->imm.fp_val;
-        Next(itRIF);
+        NEXT(itRIF);
     }
     _CPL: {
         ZValue opr = {reg_y};
         temp.list = mem_.ListCopy(opr.list);
         if (mem_.mem_error()) goto _MERR;
         reg_x = temp.num;
-        Next(itRR);
+        NEXT(itRR);
     }
     _LENL: {
         temp.num = reg_y;
         reg_x.long_long = mem_.ListLength(temp.list);
         if (mem_.mem_error()) goto _MERR;
-        Next(itRR);
+        NEXT(itRR);
     }
     _POSL: {   // TODO: remove
         temp.num = reg_y;
         reg_x.long_long = temp.list.position;
-        Next(itRR);
+        NEXT(itRR);
     }
     _EQL: {
         temp.num = reg_x;
         ZValue opr = {reg_y};
         reg_x.long_long = mem_.ListCompare(temp.list, opr.list);
         if (mem_.mem_error()) goto _MERR;
-        Next(itRR);
+        NEXT(itRR);
     }
     _GETL: {
         temp.num = reg_y;
         reg_x = mem_.GetListItem(temp.list, reg_x.long_long);
         if (mem_.mem_error()) goto _MERR;
-        Next(itRR);
+        NEXT(itRR);
     }
 
 #undef reg_x
 #undef reg_y
+#undef NEXT
 }
 
 } // namespace zvm

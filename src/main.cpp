@@ -43,6 +43,7 @@ void PrintVersion() {
 int main(int argc, const char *argv[]) {
     xstl::ArgumentHandler argh;
     std::ifstream in;
+    MemSizeT gc_pool_size = kGCPoolSize;
 
     auto PrintError = [](xstl::StrRef v) {
         std::cout << "invalid command ";
@@ -58,6 +59,11 @@ int main(int argc, const char *argv[]) {
     argh.AddAlias("help", "h");
     argh.AddHandler("v", [](xstl::StrRef v) { PrintVersion(); return 1; });
     argh.AddAlias("version", "v");
+    argh.AddHandler("g", [&gc_pool_size](xstl::StrRef v) {
+        gc_pool_size = std::stoi(v);
+        return 0;
+    });
+    argh.AddAlias("gc-pool", "g");
     argh.AddHandler("", [&in](xstl::StrRef v) {
         in.open(v, std::ios_base::binary);
         return 0;
@@ -66,7 +72,7 @@ int main(int argc, const char *argv[]) {
     if (!argh.ParseArguments(argc, argv)) return 0;
 
     InterruptManager int_manager;
-    ZexVM vm(int_manager);
+    ZexVM vm(gc_pool_size, int_manager);
 
     if (vm.LoadProgram(in)) {
         auto ret_val = vm.Run();

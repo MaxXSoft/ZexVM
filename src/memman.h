@@ -64,7 +64,10 @@ public:
     bool DelStringObj(String str);
     bool DelListObj(List list);
 
-    const char *GetStringObj(String str);
+    const char *GetRawString(String str);
+    bool SetRawString(String &str, const char *data);
+    bool GetStringObj(String str, MemSizeT position);
+    bool SetStringObj(String &str, MemSizeT position);
     Register GetListItem(List list, MemSizeT index);
     bool SetListItem(List list, MemSizeT index, Register value);
     void SetRootEnv(List env) { gc_.SetRootObj(env.position); }
@@ -72,21 +75,21 @@ public:
     void DelListRef(List list, List ref);
 
     bool StringCompare(String str1, String str2);
-    String StringCatenate(String str1, String str2);
-    Register StringLength(String str);
+    bool StringCatenate(String str1, String str2);
+    MemSizeT StringLength(String str);
     String StringCopy(String str);
 
     bool ListCompare(List list1, List list2);
-    List ListCatenate(List list1, List list2);
-    Register ListLength(List list);
+    bool ListCatenate(List list1, List list2);
+    MemSizeT ListLength(List list);
     List ListCopy(List list);
 
     bool mem_error() const { return mem_error_; }
     MemSizeT memory_size() const { return mem_size_; }
     MemSizeT stack_size() const { return stack_size_; }
 
-    void set_memory_size(unsigned int memory_size) { mem_size_ = memory_size; }
-    void set_stack_size(unsigned int stack_size) { stack_size_ = stack_size; }
+    void set_memory_size(MemSizeT memory_size) { mem_size_ = memory_size; }
+    void set_stack_size(MemSizeT stack_size) { stack_size_ = stack_size; }
 
 private:
     GarbageCollector gc_;

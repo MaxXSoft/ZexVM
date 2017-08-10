@@ -2,28 +2,30 @@
 #define ZVM_INTERRUPT_H_
 
 #include <array>
-#include <vector>
+#include <map>
 #include <functional>
 #include <cstddef>
 
 #include "type.h"
+#include "memman.h"
 
 namespace zvm {
 
-using IntFuncArg = std::array<Register, kArgRegisterCount>;
-using IntFuncMem = std::array<char, kMemorySize>;
-using IntFunc = std::function<ZValue(const IntFuncArg &, IntFuncMem &)>;
+using IntFuncArg = const std::array<Register, kArgRegisterCount> &;
+using IntFuncMem = MemoryManager &;
+using IntFunc = std::function<ZValue(IntFuncArg, IntFuncMem)>;
 
 class InterruptManager {
 public:
     InterruptManager();
     ~InterruptManager() {}
 
-    int RegisterInterrupt(IntFunc func);
-    void TriggerInterrupt(unsigned int index, std::array<Register, kRegisterCount> &reg, std::array<char, kMemorySize> &mem);
+
+    bool RegisterInterrupt(const char *name, IntFunc func);
+    bool TriggerInterrupt(unsigned int id, std::array<Register, kRegisterCount> &reg, IntFuncMem mem);
 
 private:
-    std::vector<IntFunc> func_vector_;
+    std::map<unsigned int, IntFunc> func_set_;
 };
 
 } // namespace zvm

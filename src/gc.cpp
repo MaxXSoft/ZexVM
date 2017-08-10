@@ -16,7 +16,7 @@ bool GarbageCollector::Reallocate(MemSizeT need_size) {
         auto &gco = i->second;
         // sweep unreachable object
         if (!gco.reachable()) {
-            free_id_.push_back(i->first);
+            free_id_.push_front(i->first);
             i = obj_set_.erase(i);
         }
         else {
@@ -84,12 +84,12 @@ unsigned int GarbageCollector::AddObj(MemSizeT length) {
         return obj_id_;
     }
 
-    obj_set_.insert({new_id, gc::GCObject(gc_stack_ptr_, length)});
+    obj_set_.insert(ObjSet::value_type(new_id, gc::GCObject(gc_stack_ptr_, length)));
     gc_stack_ptr_ += length;
     return new_id;
 }
 
-unsigned int GarbageCollector::AddObjFromMemory(char *position, MemSizeT length) {
+unsigned int GarbageCollector::AddObjFromMemory(const char *position, MemSizeT length) {
     auto new_id = AddObj(length);
     if (gc_error_) return new_id;
 
@@ -99,6 +99,34 @@ unsigned int GarbageCollector::AddObjFromMemory(char *position, MemSizeT length)
     }
 
     return new_id;
+}
+
+bool GarbageCollector::ExpandObj(unsigned int id, const char *data_pos, MemSizeT data_len, MemSizeT overlay) {
+    auto obj = obj_set_.find(id);
+    if (obj == obj_set_.end()) return !(gc_error_ = true);
+    // calculate the length of the original object
+    // after excluding the overlay
+    auto obj_len = obj->second.length() - overlay;
+    if (obj_len <= 0) return !(gc_error_ = true);
+    // allocate a new object
+    auto new_id = AddObj(obj_len + data_len);
+    if (gc_error_) return false;
+    // copy the data whose length is obj_len
+    // from the original object to the new object
+    auto new_obj = obj_set_.find(new_id);
+    auto obj_pos = obj->second.position(), new_pos = new_obj->second.position();
+    for (MemSizeT i = 0; i < obj_len; ++i) {
+        gc_pool_[new_pos + i] = gc_pool_[obj_pos + i];
+    }
+    // move the content of new object and the original one
+    // and delete the new object
+    obj->second = std::move(new_obj->second);
+    obj_set_.erase(new_obj);
+    // copy the remaining data
+    for (MemSizeT i = 0; i < data_len; ++i) {
+        gc_pool_[new_pos + obj_len + i] = data_pos[i];
+    }
+    return true;
 }
 
 bool GarbageCollector::DeleteObj(unsigned int id) {

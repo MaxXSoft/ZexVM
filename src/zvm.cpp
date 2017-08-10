@@ -18,17 +18,21 @@ enum InstOp {
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, LENS, EQS,   // String
     ADDL, MOVL, CPL, LENL, POSL, EQL, GETL   // List
+    // TODO:
+    // add: PEEK, NEWS, NEWL, DELS, DELL, CPS (copy string), 
+    //      GETS, SETS, SETL, SETR, ADR, RMR
+    // remove: POSL
 };
 
 enum InstReg {
     IMM,   // marked as an immediate number
     R1, R2, R3, R4, R5, R6, R7,   // general registers
     A1, A2, A3, A4, A5, A6, RV,   // function registers
-    // (A1-A5: args, A6: arg6 or arg stack pointer, RV: ret value)
+    // (A1-A5: args, A6: arg6 or environment, RV: ret value)
     PC   // program counter
 };
 
-enum InstLen {
+enum InstLen : zvm::MemSizeT {
     itVOID = sizeof(unsigned char), 
     itR = sizeof(unsigned char) * 2, 
     itI = sizeof(unsigned char) + sizeof(unsigned int), 
@@ -81,27 +85,15 @@ inline T CalcExpression(const T &opr1, const T &opr2, int Op) {
     }
 }
 
-inline bool IsIllegalList(const zvm::List &list) {
-    return list.len * 8 + list.position > zvm::kMemorySize - 1;
-}
-
-inline bool IsIllegalString(const zvm::String &str) {
-    return str.position > zvm::kMemorySize - 1;
-}
-
 } // namespace
 
 namespace zvm {
 
 void ZexVM::Initialize() {
     program_error_ = true;
-
-    Register zero;
-    zero.long_long = 0;
-    reg_.fill(zero);
-
+    reg_.fill({0});
     cache_.fill(0);
-    mem_.fill(0);
+    if (mem_.mem_error()) mem_.ResetMemory();
 }
 
 bool ZexVM::LoadProgram(std::ifstream &file) {
@@ -128,373 +120,277 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
         return false;
     }
 
-    unsigned int mem_size = 0, arg_stack_size = 0, const_pool_size = 0, temp = 0;
-    file.read((char *)&mem_size, sizeof(unsigned int));
-    file.read((char *)&arg_stack_size, sizeof(unsigned int));
-    file.read((char *)&const_pool_size, sizeof(unsigned int));
-    file.read((char *)&temp, sizeof(unsigned int));
+    MemSizeT mem_size = 0, stack_size = 0, const_pool_size = 0, temp = 0;
+    file.read((char *)&mem_size, sizeof(MemSizeT));
+    file.read((char *)&stack_size, sizeof(MemSizeT));
+    file.read((char *)&const_pool_size, sizeof(MemSizeT));
+    file.read((char *)&temp, sizeof(MemSizeT));
     const_pool_size = temp - const_pool_size;
-    if (mem_size > kMemorySize || arg_stack_size + const_pool_size >= mem_size) return false;
+    if (mem_size > kMemorySize || const_pool_size >= mem_size) return false;
+    mem_.set_memory_size(mem_size);
+    mem_.set_stack_size(stack_size);
+    mem_.ResetMemory();
 
     for (int i = 0; i < const_pool_size; ++i) {
-        file >> mem_[arg_stack_size + i];
+        file >> mem_[i];
     }
 
-    if ((unsigned int)len - temp >= kCacheSize) return false;
+    if ((MemSizeT)len - temp >= kCacheSize) return false;
     for (int i = 0; !file.eof(); ++i) {
         file >> cache_[i];
     }
 
-    program_error_ = false;
-
-    return !program_error_;
+    return !(program_error_ = false);
 }
 
 int ZexVM::Run() {
+#define reg_x reg_[rx_index]
+#define reg_y reg_[ry_index]
+
     if (program_error_) return kProgramError;
 
-    VMInst inst;
+    VMInst *inst = nullptr;
     ZValue temp;
     auto &reg_pc = reg_[PC].long_long;
+    auto rx_index = 0, ry_index = 0;
+    auto imm_mode = false;
 
-    for (;;) {
-        if (reg_pc >= kCacheSize) {
-            program_error_ = true;
-            return kCacheError;
+    void *inst_list[] = {
+        &&_END,
+        &&_AND, &&_XOR, &&_OR, &&_NOT, &&_SHL, &&_SHR,
+        &&_ADD, &&_ADDF, &&_SUB, &&_SUBF, &&_MUL, &&_MULF, &&_DIV, &&_DIVF, &&_NEG, &&_NEGF, &&_MOD, &&_POW,
+        &&_LT, &&_LTF, &&_GT, &&_GTF, &&_LE, &&_LEF, &&_GE, &&_GEF, &&_EQ, &&_NEQ,
+        &&_JMP, &&_JZ, &&_JNZ, &&_CALL, &&_RET,
+        &&_MOV, &&_POP, &&_PUSH, &&_LD, &&_ST, &&_STR, &&_STC, &&_INT,
+        &&_ITF, &&_FTI, &&_ITS, &&_STI, &&_FTS, &&_STF,
+        &&_ADDS, &&_LENS, &&_EQS,
+        &&_ADDL, &&_MOVL, &&_CPL, &&_LENL, &&_POSL, &&_EQL, &&_GETL
+    };
+
+    #define Next(inst_len) \
+        reg_pc += (inst_len); \
+        if (reg_pc >= kCacheSize) goto _PERR; \
+        inst = (VMInst *)(cache_.data() + reg_pc); \
+        rx_index = inst->reg >> 4; \
+        ry_index = inst->reg & 0x0F; \
+        imm_mode = !(inst->reg & 0x0F); \
+        goto *inst_list[inst->op];
+
+    Next(0);   // start running
+
+    _PERR: program_error_ = true; return kProgramError;
+    _SERR: program_error_ = true; return kStackError;
+    _MERR: program_error_ = true; return kMemoryError;
+    _CERR: program_error_ = true; return kCacheError;
+    _END: {
+        return kFinished;
+    }
+    _AND: _XOR: _OR: _SHL: _SHR: _ADD: _SUB: _MUL: _DIV: _MOD: _LT:
+    _GT: _LE: _GE: _EQ: _NEQ: {
+        reg_x.long_long = CalcExpression(reg_x.long_long, (imm_mode ? (long long)inst->imm.int_val : reg_y.long_long), inst->op);
+        Next(imm_mode ? itRI : itRR);
+    }
+    _ADDF: _SUBF: _MULF: _DIVF: _POW: {
+        reg_x.doub = CalcExpression(reg_x.doub, (imm_mode ? inst->imm.fp_val : reg_y.doub), inst->op);
+        Next(imm_mode ? itRIF : itRR);
+    }
+    _LTF: _GTF: _LEF: _GEF: {
+        reg_x.long_long = (long long)CalcExpression(reg_x.doub, (imm_mode ? inst->imm.fp_val : reg_y.doub), inst->op);
+        Next(imm_mode ? itRIF : itRR);
+    }
+    _NOT: _NEG: {
+        reg_x.long_long = CalcExpression(reg_x.long_long, 0LL, inst->op);
+        Next(itR);
+    }
+    _NEGF: {
+        reg_x.doub = -reg_x.doub;
+        Next(itR);
+    }
+    _JMP: {
+        reg_pc = imm_mode ? inst->imm.int_val : reg_x.long_long;
+        Next(0);
+    }
+    _JZ: {
+        if (reg_x.long_long == 0) {
+            reg_pc = imm_mode ? inst->imm.int_val : reg_x.long_long;
+            Next(0);
         }
-
-        inst = *(VMInst *)(cache_.data() + reg_pc);
-        
-        auto &reg_x = reg_[inst.reg >> 4];
-        auto &reg_y = reg_[inst.reg & 0x0F];
-        auto imm_mode = !(inst.reg & 0x0F);
-
-        switch (inst.op) {
-            case END: {
-                return kFinished;
-            }
-            case AND: case XOR: case OR: case SHL: case SHR:
-            case ADD: case SUB: case MUL: case DIV: case MOD:
-            case LT: case GT: case LE: case GE: case EQ: case NEQ: {
-                reg_x.long_long = CalcExpression(reg_x.long_long, (imm_mode ? (long long)inst.imm.int_val : reg_y.long_long), inst.op);
-                reg_pc += imm_mode ? itRI : itRR;
-                break;
-            }
-            case ADDF: case SUBF: case MULF: case DIVF: case POW: {
-                reg_x.doub = CalcExpression(reg_x.doub, (imm_mode ? inst.imm.fp_val : reg_y.doub), inst.op);
-                reg_pc += imm_mode ? itRIF : itRR;
-                break;
-            }
-            case LTF: case GTF: case LEF: case GEF: {
-                reg_x.long_long = (long long)CalcExpression(reg_x.doub, (imm_mode ? inst.imm.fp_val : reg_y.doub), inst.op);
-                reg_pc += imm_mode ? itRIF : itRR;
-                break;
-            }
-            case NOT: case NEG: {
-                reg_x.long_long = CalcExpression(reg_x.long_long, 0LL, inst.op);
-                reg_pc += itR;
-                break;
-            }
-            case NEGF: {
-                reg_x.doub = -reg_x.doub;
-                reg_pc += itR;
-                break;
-            }
-            case JMP: {
-                reg_pc = imm_mode ? inst.imm.int_val : reg_x.long_long;
-                break;
-            }
-            case JZ: {
-                if (reg_x.long_long == 0) {
-                    reg_pc = imm_mode ? inst.imm.int_val : reg_x.long_long;
-                }
-                else {
-                    reg_pc += imm_mode ? itRI : itRR;
-                }
-                break;
-            }
-            case JNZ: {
-                if (reg_x.long_long != 0) {
-                    reg_pc = imm_mode ? inst.imm.int_val : reg_x.long_long;
-                }
-                else {
-                    reg_pc += imm_mode ? itRI : itRR;
-                }
-                break;
-            }
-            case CALL: {
-                temp.num.doub = imm_mode ? inst.imm.fp_val : reg_x.doub;
-                if (temp.func.arg_count > 6) {
-                    reg_[A6].long_long = temp.func.arg_stack_pointer;
-                }
-                reg_pc += imm_mode ? itRIF : itR;
-                stack_.push(reg_[PC]);
-                reg_pc = temp.func.position;
-                break;
-            }
-            case RET: {
-                if (stack_.size() == 0) {
-                    program_error_ = true;
-                    return kStackError;
-                }
-                reg_pc = stack_.top().long_long;
-                stack_.pop();
-                break;
-            }
-            case MOV: {
-                reg_x.long_long = imm_mode ? inst.imm.int_val : reg_y.long_long;
-                reg_pc += imm_mode ? itRI : itRR;
-                break;
-            }
-            case POP: {
-                if (stack_.size() == 0) {
-                    program_error_ = true;
-                    return kStackError;
-                }
-                reg_x = stack_.top();
-                stack_.pop();
-                reg_pc += itR;
-                break;
-            }
-            case PUSH: {
-                temp.num.long_long = inst.imm.int_val;
-                stack_.push(imm_mode ? temp.num : reg_x);
-                reg_pc += imm_mode ? itRI : itR;
-                break;
-            }
-            case LD: {
-                temp.num.long_long = imm_mode ? inst.imm.int_val : reg_y.long_long;
-                if (temp.num.long_long >= kMemorySize - sizeof(Register)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                reg_x = *(Register *)(mem_.data() + temp.num.long_long);
-                reg_pc += imm_mode ? itRI : itRR;
-                break;
-            }
-            case ST: {
-                // ST: I, R/I;   inst.imm -> I, reg_x/temp.num -> R/I
-                if (inst.imm.int_val >= kMemorySize - sizeof(Register)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                if (imm_mode) {
-                    temp.num.long_long = *(unsigned int *)(cache_.data() + reg_pc + itRI);
-                    *(Register *)(mem_.data() + inst.imm.int_val) = temp.num;
-                    reg_pc += itII;
-                }
-                else {
-                    *(Register *)(mem_.data() + inst.imm.int_val) = reg_x;
-                    reg_pc += itRI;
-                }
-                break;
-            }
-            case STR: {
-                if (reg_x.long_long >= kMemorySize - sizeof(Register)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                temp.num.long_long = inst.imm.int_val;
-                *(Register *)(mem_.data() + reg_x.long_long) = imm_mode ? temp.num : reg_y;
-                reg_pc += imm_mode ? itRI : itRR;
-                break;
-            }
-            case STC: {
-                if (reg_x.long_long >= kMemorySize - sizeof(char)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                *(mem_.data() + reg_x.long_long) = (char)(imm_mode ? inst.imm.int_val : reg_y.long_long);
-                reg_pc += imm_mode ? itRI : itRR;
-                break;
-            }
-            case INT: {
-                auto opr = *(unsigned int *)(cache_.data() + reg_pc + itVOID);
-                int_manager_.TriggerInterrupt(opr, reg_, mem_);
-                reg_pc += itI;
-                break;
-            }
-            case ITF: {
-                reg_x.doub = (double)reg_x.long_long;
-                reg_pc += itR;
-                break;
-            }
-            case FTI: {
-                reg_x.long_long = (long long)reg_x.doub;
-                reg_pc += itR;
-                break;
-            }
-            case ITS: case FTS: {
-                // GC
-                std::string str;
-                if (inst.op == ITS) {
-                    str = std::to_string(reg_y.long_long);
-                }
-                else {
-                    str = std::to_string(reg_y.doub);
-                }
-                temp.num = reg_x;
-                if (temp.str.position + str.size() > kMemorySize - 1) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                strcpy((char *)(mem_.data() + temp.str.position), str.c_str());
-                reg_pc += itRR;
-                break;
-            }
-            case STI: case STF: {
-                // GC
-                temp.num = reg_y;
-                if (temp.str.position > kMemorySize - 1) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                if (inst.op == STI) {
-                    reg_x.long_long = strtoll(mem_.data() + temp.str.position, nullptr, 10);
-                }
-                else {
-                    reg_x.doub = strtod(mem_.data() + temp.str.position, nullptr);
-                }
-                reg_pc += itRR;
-                break;
-            }
-            case ADDS: case EQS: {
-                // GC
-                temp.num = reg_x;
-                ZValue opr;
-                opr.num = reg_y;
-                if (IsIllegalString(temp.str) || IsIllegalString(opr.str)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                if (inst.op == ADDS) {
-                    strcat((char *)(mem_.data() + temp.str.position), (char *)(mem_.data() + opr.str.position));
-                }
-                else {
-                    reg_x.long_long = !strcmp((char *)(mem_.data() + temp.str.position), (char *)(mem_.data() + opr.str.position));
-                }
-                reg_pc += itRR;
-                break;
-            }
-            case LENS: {
-                // GC
-                temp.num = reg_y;
-                if (IsIllegalString(temp.str)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                reg_x.long_long = strlen((char *)(mem_.data() + temp.str.position));
-                reg_pc += itRR;
-                break;
-            }
-            case ADDL: {
-                // GC
-                temp.num = reg_x;
-                ZValue opr;
-                opr.num = reg_y;
-                if (IsIllegalList(temp.list) || IsIllegalList(opr.list) || 
-                        temp.list.position + temp.list.len * 8 + opr.list.len * 8 > kMemorySize - 1) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                for (int i = 0; i < opr.list.len; ++i) {
-                    mem_[temp.list.position + (temp.list.len + i) * 8] = mem_[opr.list.position + i * 8];
-                }
-                temp.list.len += opr.list.len;
-                reg_x = temp.num;
-                reg_pc += itRR;
-                break;
-            }
-            case MOVL: {
-                // GC?
-                if (imm_mode) {
-                    reg_x.doub = inst.imm.fp_val;
-                    reg_pc += itRIF;
-                }
-                else {
-                    temp.list.len = reg_x.long_long;
-                    temp.list.position = reg_y.long_long;
-                    reg_x.doub = temp.num.doub;
-                    reg_pc += itRR;
-                }
-                break;
-            }
-            case CPL: {
-                // GC
-                temp.num = reg_x;
-                ZValue opr;
-                opr.num = reg_y;
-                if (IsIllegalList(temp.list) || IsIllegalList(opr.list)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                if (temp.list.len != opr.list.len) {
-                    program_error_ = true;
-                    return kProgramError;
-                }
-                for (int i = 0; i < opr.list.len; ++i) {
-                    mem_[temp.list.position + i * 8] = mem_[opr.list.position + i * 8];
-                }
-                reg_pc += itRR;
-                break;
-            }
-            case LENL: {
-                temp.num = reg_y;
-                reg_x.long_long = temp.list.len;
-                reg_pc += itRR;
-                break;
-            }
-            case POSL: {
-                temp.num = reg_y;
-                reg_x.long_long = temp.list.position;
-                reg_pc += itRR;
-                break;
-            }
-            case EQL: {
-                // GC
-                temp.num = reg_x;
-                ZValue opr;
-                opr.num = reg_y;
-                if (IsIllegalList(temp.list) || IsIllegalList(opr.list)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                if (temp.list.len != opr.list.len) {
-                    reg_x.long_long = 0;
-                }
-                else {
-                    reg_x.long_long = 1;
-                    for (int i = 0; i < opr.list.len; ++i) {
-                        if (mem_[temp.list.position + i * 8] != mem_[opr.list.position + i * 8]) {
-                            reg_x.long_long = 0;
-                            break;
-                        }
-                    }
-                }
-                reg_pc += itRR;
-                break;
-            }
-            case GETL: {
-                // TODO
-                temp.num = reg_y;
-                if (IsIllegalList(temp.list)) {
-                    program_error_ = true;
-                    return kMemoryError;
-                }
-                if (reg_x.long_long >= temp.list.len || reg_x.long_long < 0) {
-                    program_error_ = true;
-                    return kProgramError;
-                }
-                reg_x = *(Register *)(mem_.data() + temp.list.position + reg_x.long_long * 8);
-                reg_pc += itRR;
-                break;
-            }
-            default: {
-                program_error_ = true;
-                return kProgramError;
-            }
+        else {
+            Next(imm_mode ? itRI : itRR);
         }
     }
+    _JNZ: {
+        if (reg_x.long_long != 0) {
+            reg_pc = imm_mode ? inst->imm.int_val : reg_x.long_long;
+            Next(0);
+        }
+        else {
+            Next(imm_mode ? itRI : itRR);
+        }
+    }
+    _CALL: {   // TODO
+        temp.num.doub = imm_mode ? inst->imm.fp_val : reg_x.doub;
+        if (temp.func.arg_count > 6) {
+            reg_[A6].long_long = temp.func.arg_stack_pointer;
+        }
+        reg_pc += imm_mode ? itRIF : itR;
+        if (!mem_.Push(reg_[PC])) goto _SERR;
+        reg_pc = temp.func.position;
+        Next(0);
+    }
+    _RET: {
+        reg_pc = mem_.Pop().long_long;
+        if (mem_.mem_error()) goto _SERR;
+        Next(0);
+    }
+    _MOV: {
+        reg_x.long_long = imm_mode ? inst->imm.int_val : reg_y.long_long;
+        Next(imm_mode ? itRI : itRR);
+    }
+    _POP: {
+        reg_x = mem_.Pop();
+        if (mem_.mem_error()) goto _SERR;
+        Next(itR);
+    }
+    _PUSH: {
+        temp.num.long_long = inst->imm.int_val;
+        if (!mem_.Push(imm_mode ? temp.num : reg_x)) goto _SERR;
+        Next(imm_mode ? itRI : itR);
+    }
+    _LD: {
+        temp.num.long_long = imm_mode ? inst->imm.int_val : reg_y.long_long;
+        reg_x = mem_(temp.num.long_long);
+        if (mem_.mem_error()) goto _MERR;
+        Next(imm_mode ? itRI : itRR);
+    }
+    _ST: {
+        // ST: I, R/I;   inst->imm -> I, reg_x/temp.num -> R/I
+        if (imm_mode) {
+            temp.num.long_long = *(unsigned int *)(cache_.data() + reg_pc + itRI);
+            mem_(inst->imm.int_val) = temp.num;
+            if (mem_.mem_error()) goto _MERR;
+            Next(itII);
+        }
+        else {
+            mem_(inst->imm.int_val) = reg_x;
+            if (mem_.mem_error()) goto _MERR;
+            Next(itRI);
+        }
+    }
+    _STR: {
+        temp.num.long_long = inst->imm.int_val;
+        mem_(reg_x.long_long) = imm_mode ? temp.num : reg_y;
+        if (mem_.mem_error()) goto _MERR;
+        Next(imm_mode ? itRI : itRR);
+    }
+    _STC: {
+        mem_[reg_x.long_long] = (char)(imm_mode ? inst->imm.int_val : reg_y.long_long);
+        if (mem_.mem_error()) goto _MERR;
+        Next(imm_mode ? itRI : itRR);
+    }
+    _INT: {
+        auto opr = *(unsigned int *)(cache_.data() + reg_pc + itVOID);
+        if (!int_manager_.TriggerInterrupt(opr, reg_, mem_)) goto _PERR;
+        if (mem_.mem_error()) goto _MERR;
+        Next(itI);
+    }
+    _ITF: {
+        reg_x.doub = (double)reg_x.long_long;
+        Next(itR);
+    }
+    _FTI: {
+        reg_x.long_long = (long long)reg_x.doub;
+        Next(itR);
+    }
+    _ITS: _FTS: {
+        std::string str;
+        if (inst->op == ITS) {
+            str = std::to_string(reg_y.long_long);
+        }
+        else {
+            str = std::to_string(reg_y.doub);
+        }
+        temp.num = reg_x;
+        if (!mem_.SetRawString(temp.str, str.c_str())) goto _MERR;
+        reg_x = temp.num;
+    }
+    Next(itRR);
+    _STI: _STF: {
+        temp.num = reg_y;
+        auto ptr = mem_.GetRawString(temp.str);
+        if (mem_.mem_error()) goto _MERR;
+        if (inst->op == STI) {
+            reg_x.long_long = strtoll(ptr, nullptr, 10);
+        }
+        else {
+            reg_x.doub = strtod(ptr, nullptr);
+        }
+        Next(itRR);
+    }
+    _ADDS: _EQS: {
+        temp.num = reg_x;
+        ZValue opr = {reg_y};
+        if (inst->op == ADDS) {
+            if (!mem_.StringCatenate(temp.str, opr.str)) goto _MERR;
+            reg_x = temp.num;
+        }
+        else {
+            reg_x.long_long = mem_.StringCompare(temp.str, opr.str);
+            if (mem_.mem_error()) goto _MERR;
+        }
+        Next(itRR);
+    }
+    _LENS: {
+        temp.num = reg_y;
+        reg_x.long_long = mem_.StringLength(temp.str);
+        Next(itRR);
+    }
+    _ADDL: {
+        temp.num = reg_x;
+        ZValue opr = {reg_y};
+        if (!mem_.ListCatenate(temp.list, opr.list)) goto _MERR;
+        reg_x = temp.num;
+        Next(itRR);
+    }
+    _MOVL: {
+        if (!imm_mode) goto _PERR;   // imm_mode ONLY!
+        reg_x.doub = inst->imm.fp_val;
+        Next(itRIF);
+    }
+    _CPL: {
+        ZValue opr = {reg_y};
+        temp.list = mem_.ListCopy(opr.list);
+        if (mem_.mem_error()) goto _MERR;
+        reg_x = temp.num;
+        Next(itRR);
+    }
+    _LENL: {
+        temp.num = reg_y;
+        reg_x.long_long = mem_.ListLength(temp.list);
+        if (mem_.mem_error()) goto _MERR;
+        Next(itRR);
+    }
+    _POSL: {   // TODO: remove
+        temp.num = reg_y;
+        reg_x.long_long = temp.list.position;
+        Next(itRR);
+    }
+    _EQL: {
+        temp.num = reg_x;
+        ZValue opr = {reg_y};
+        reg_x.long_long = mem_.ListCompare(temp.list, opr.list);
+        if (mem_.mem_error()) goto _MERR;
+        Next(itRR);
+    }
+    _GETL: {
+        temp.num = reg_y;
+        reg_x = mem_.GetListItem(temp.list, reg_x.long_long);
+        if (mem_.mem_error()) goto _MERR;
+        Next(itRR);
+    }
+
+#undef reg_x
+#undef reg_y
 }
 
 } // namespace zvm

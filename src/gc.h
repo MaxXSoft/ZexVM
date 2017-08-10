@@ -16,9 +16,26 @@ class GCObject {
 public:
     using ElemList = std::deque<unsigned int>;
 
-    GCObject(MemSizeT position, MemSizeT length)
+    explicit GCObject(MemSizeT position, MemSizeT length)
             : position_(position), length_(length) {}
+    // move constructor
+    GCObject(GCObject &&gco) noexcept
+            : position_(gco.position_), length_(gco.length_),
+              reachable_(gco.reachable_), elem_list_(std::move(gco.elem_list_)) {}
+    GCObject(const GCObject &gco) = delete;
     ~GCObject() {}
+
+    // move assignment operator
+    GCObject &operator=(GCObject &&gco) noexcept {
+        if (this != &gco) {
+            position_ = gco.position_;
+            length_ = gco.length_;
+            reachable_ = gco.reachable_;
+            elem_list_ = std::move(gco.elem_list_);
+        }
+        return *this;
+    }
+    GCObject &operator=(const GCObject &gco) = delete;
 
     MemSizeT position() const { return position_; }
     MemSizeT length() const { return length_; }
@@ -51,14 +68,18 @@ private:
 
 class GarbageCollector {
 public:
+    using ObjSet = std::map<unsigned int, gc::GCObject>;
+
     GarbageCollector(MemSizeT pool_size) : pool_size_(pool_size) { ResetGC(); }
     ~GarbageCollector() {}
 
     void ResetGC();
 
     unsigned int AddObj(MemSizeT length);
-    unsigned int AddObjFromMemory(char *position, MemSizeT length);
+    unsigned int AddObjFromMemory(const char *position, MemSizeT length);
+    bool ExpandObj(unsigned int id, const char *data_pos, MemSizeT data_len, MemSizeT overlay = 0);
     bool DeleteObj(unsigned int id);
+
     void SetRootObj(unsigned int id) { root_id_ = id; }
     void AddElem(unsigned int obj_id, unsigned int elem_id);
     void DelElem(unsigned int obj_id, unsigned int elem_id);
@@ -72,6 +93,10 @@ public:
 private:
     bool Reallocate(MemSizeT need_size);
     void Trace(unsigned int id);
+
+    // garbage collector must ensure that when you add an object after
+    // you deleted another object, GetId will return the id of the object
+    // you just deleted
     unsigned int GetId();
 
     bool gc_error_;
@@ -79,7 +104,7 @@ private:
     unsigned int obj_id_, root_id_;
     std::unique_ptr<char[]> gc_pool_, temp_pool_;
     // map: <id, GCObject>
-    std::map<unsigned int, gc::GCObject> obj_set_;
+    ObjSet obj_set_;
     std::deque<unsigned int> free_id_;
 };
 

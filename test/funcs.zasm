@@ -1,7 +1,7 @@
     header
 
 __data:
-    def  0x20000
+    def  0x8000
     def  0x4000
     def  __constant
     def  __program
@@ -53,29 +53,15 @@ str_test_list_add:
 str_test_list_copy:
     def  "list copy"
 
-str_temp0_pointer:
-    def  str_temp0, 0
-str_temp1_pointer:
-    def  str_temp1, 0
-str_temp2_pointer:
-    def  str_temp2, 0
-
 str_temp0:
-    def  "hello ", 0, 0, 0
+    def  "hello "
 str_temp1:
     def  "world!"
 str_temp2:
     def  "hello world!"
 
-lst_temp0_pointer:
-    def  5, lst_temp0
-lst_temp1_pointer:
-    def  2, lst_temp1
-lst_temp2_pointer:
-    def  7, lst_temp2
-
 lst_temp0:
-    def  1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 0, 0, 0, 0
+    def  1, 0, 2, 0, 3, 0, 4, 0, 5, 0
 lst_temp1:
     def  6, 0, 7, 0
 lst_temp2:
@@ -83,168 +69,180 @@ lst_temp2:
 
 __program:
     mov  a1, 0        ; negative immediate number
-    call 1, 0, print_test
+    call 0, print_test
     movl a1, -120.01e2
-    int  3
-    call 0, 0, newline
+    int  "PutFloat"
+    call 0, newline
 
     mov  a1, 1        ; string addition & flush
-    call 1, 0, print_test
+    call 0, print_test
     mov  a1, str_test_addition
-    int  9
-    int  9
+    int  "AddRawString"
+    int  "AddRawString"
     mov  a1, 1
-    int  10
-    call 0, 0, newline
-    call 0, 0, newline
+    int  "Flush"
+    call 0, newline
+    call 0, newline
 
     mov  a1, 2        ; clock
-    call 1, 0, print_test
-    call 0, 0, newline
+    call 0, print_test
+    call 0, newline
     mov  a1, str_test_clock_before
-    int  4
-    int  11
+    int  "PutRawString"
+    int  "GetMillisecond"
     mov  a1, rv
-    int  2
-    call 0, 0, newline
-    call 0, 0, kill_time
+    int  "PutInteger"
+    call 0, newline
+    call 0, kill_time
     mov  a1, str_test_clock_after
-    int  4
-    int  11
+    int  "PutRawString"
+    int  "GetMillisecond"
     mov  a1, rv
-    int  2
-    call 0, 0, newline
+    int  "PutInteger"
+    call 0, newline
     mov  a1, str_test_clock_sleep
-    int  4
+    int  "PutRawString"
     mov  a1, 1000
-    int  12
-    call 0, 0, newline
+    int  "Sleep"
+    call 0, newline
     mov  a1, str_test_clock_done
-    int  4
-    call 0, 0, newline
-    call 0, 0, newline
+    int  "PutRawString"
+    call 0, newline
+    call 0, newline
 
     mov  a1, 3        ; file
-    call 1, 0, print_test
-    call 0, 0, newline
+    call 0, print_test
+    call 0, newline
     mov  a1, str_test_file_open
-    int  4
+    int  "PutRawString"
     mov  a1, str_test_file_path
-    int  4
-    call 0, 0, newline
+    int  "PutRawString"
+    call 0, newline
     mov  a1, str_test_file_path
+    news a1
     mov  a2, 0        ; read only
-    int  13           ; OpenFile
+    int  "OpenFile"
+    dels a1
     mov  r1, 0        ; if
     eq   r1, rv
     jz   r1, main_if0_else_
     mov  a1, str_test_file_failed
-    int  4
-    call 0, 0, newline
+    int  "PutRawString"
+    call 0, newline
     jmp  main_if0_end_
 main_if0_else_:
     mov  r1, rv       ; r1 = file_pointer
     mov  a1, str_test_file_read
-    int  4
-    call 0, 0, newline
+    int  "PutRawString"
+    call 0, newline
     mov  a1, r1
-    int  15           ; ReadByte
+    int  "ReadByte"
     mov  a1, rv
-    int  0
+    int  "PutChar"
     mov  a1, r1
-    int  19           ; Tell
+    int  "Tell"
     mov  r2, rv       ; r2 = file_position
     mov  a1, r1
     mov  a2, 3
     mov  a3, 1
-    int  20           ; Seek
+    int  "Seek"
     mov  a1, r1
-    int  15           ; ReadByte
+    int  "ReadByte"
     mov  a1, rv
-    int  0
+    int  "PutChar"
     mov  a1, r1
-    int  15           ; ReadByte
+    int  "ReadByte"
     mov  a1, rv
-    int  0
+    int  "PutChar"
     mov  a1, r1
     mov  a2, r2
     mov  a3, 0
-    int  20           ; Seek
+    int  "Seek"
     mov  r3, 0        ; for loop
 main_for0_:
     mov  r4, r3
     lt   r4, 9
     jz   r4, main_for0_end_
     mov  a1, r1
-    int  15           ; ReadByte
+    int  "ReadByte"
     mov  a1, rv
-    int  0
+    int  "PutChar"
     add  r3, 1
     jmp  main_for0_
 main_for0_end_:
-    call 0, 0, newline
+    call 0, newline
     mov  a1, r1
-    int  14           ; CloseFile
+    int  "CloseFile"
     mov  a1, str_test_file_close
-    int  4
-    call 0, 0, newline
+    int  "PutRawString"
+    call 0, newline
 main_if0_end_:
-    call 0, 0, newline
+    call 0, newline
 
     mov  a1, 4        ; string operations
-    call 1, 0, print_test
-    call 0, 0, newline
-    ld   r1, str_temp0_pointer
-    ld   r2, str_temp1_pointer
-    ld   r3, str_temp2_pointer
+    call 0, print_test
+    call 0, newline
+    mov  r1, str_temp0
+    news r1
+    mov  r2, str_temp1
+    news r2
+    mov  r3, str_temp2
+    news r3
     mov  a1, str_test_string_len
-    int  4
+    int  "PutRawString"
     lens a1, r1
-    int  2
-    call 0, 0, newline
+    int  "PutInteger"
+    call 0, newline
     adds r1, r2
     mov  a1, r1
-    int  4
-    call 0, 0, newline
+    int  "PutString"
+    call 0, newline
     mov  a1, r1
     eqs  a1, r3
-    int  2
-    call 0, 0, newline
-    call 0, 0, newline
+    int  "PutInteger"
+    dels r1
+    dels r2
+    dels r3
+    call 0, newline
+    call 0, newline
 
     mov  a1, 5        ; list operations
-    call 1, 0, print_test
-    call 0, 0, newline
-    ld   r1, lst_temp0_pointer
-    ld   r2, lst_temp1_pointer
-    ld   r3, lst_temp2_pointer
+    call 0, print_test
+    call 0, newline
+    mov  r1, lst_temp0
+    newl r1, 5
+    mov  r2, lst_temp1
+    newl r2, 2
+    mov  r3, lst_temp2
+    newl r3, 7
     mov  a1, r1
-    call 1, 0, print_list
+    call 0, print_list
     mov  a1, str_test_list_add
-    int  4
-    call 0, 0, newline
+    int  "PutRawString"
+    call 0, newline
     addl r1, r2
     mov  a1, r1
-    call 1, 0, print_list
+    call 0, print_list
     mov  a1, r1
-    eql  a1, r3 ; TODO
-    int  2
-    call 0, 0, newline
+    eql  a1, r3
+    int  "PutInteger"
+    call 0, newline
     mov  a1, str_test_list_copy
-    int  4
-    call 0, 0, newline
-    posl r4, r2
-    mov  r2, 7
-    movl r2, r4
-    cpl  r1, r2
-    mov  a1, r1
-    call 1, 0, print_list
+    int  "PutRawString"
+    call 0, newline
+    cpl  r4, r2
+    mov  a1, r4
+    call 0, print_list
+    dell r1
+    dell r2
+    dell r3
+    dell r4
 
     end
 
 newline:
     mov  a1, '\n'     ; 'Char' type immediate number
-    int  8
+    int  "PutChar"
     ret
 
 print_test:
@@ -252,12 +250,12 @@ print_test:
     mov  a2, str_array_test
     add  a2, a1
     mov  a1, str_test
-    int  4
+    int  "PutRawString"
     ld   a1, a2
     and  a1, 0xffffffff
-    int  4
+    int  "PutRawString"
     mov  a1, str_colon
-    int  4
+    int  "PutRawString"
     ret
 
 print_list:
@@ -271,14 +269,14 @@ pl_for0_:
     getl a4, a1
     push a1
     mov  a1, a4
-    int  2
+    int  "PutInteger"
     mov  a1, ' '
-    int  0
+    int  "PutChar"
     pop  a1
     add  a3, 1
     jmp  pl_for0_
 pl_for0_end_:
-    call 0, 0, newline
+    call 0, newline
     ret
 
 kill_time:

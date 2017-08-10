@@ -310,10 +310,10 @@ int ZexVM::Run() {
         NEXT(itR);
     }
     _NEWL: {
-        temp.list = mem_.AddListObj(reg_x.long_long, reg_y.long_long);
+        temp.list = mem_.AddListObj(reg_x.long_long, imm_mode ? inst->imm.int_val : reg_y.long_long);
         if (mem_.mem_error()) goto _MERR;
         reg_x = temp.num;
-        NEXT(itRR);
+        NEXT(imm_mode ? itRI : itRR);
     }
     _DELS: _DELL: {
         temp.num = reg_x;

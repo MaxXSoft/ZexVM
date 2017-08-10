@@ -1,6 +1,6 @@
 	HEADER                        ; zvm bytecode header
 __data:
-	DEF  0x20000                  ; memory size
+	DEF  0x8000                   ; memory size
 	DEF  0x4000                   ; argument stack size
 	DEF  __constant               ; constant pool
 	DEF  __program                ; program entrance
@@ -11,7 +11,7 @@ __program:
 	MOV  R1, hello                ; R1 = arg_stack_size + 0 = 16384
 loop:
 	LD   A1, R1
-	INT  0
+	INT  "PutChar"
 	ADD  R1, 1
 	AND  A1, 0xFF
 	JNZ  A1, loop                 ; if A1 != 0 goto 6

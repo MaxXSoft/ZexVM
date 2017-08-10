@@ -63,7 +63,7 @@ int op_type[] = {
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kIntImm,
     kRegInt, kIntImm, kIntImm, kCall, kVoid,
     kIntImm, kMOVL, kReg, kRegInt, kReg, kIntImm, kST, kIntImm, kIntImm, kINT,
-    kReg, kRegReg, kReg, kReg, kReg, kRegReg, kRegReg,
+    kReg, kIntImm, kReg, kReg, kReg, kRegReg, kRegReg,
     kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg, kRegReg, kRegReg, kSETL

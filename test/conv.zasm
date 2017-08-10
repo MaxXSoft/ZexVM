@@ -1,7 +1,7 @@
     header
 
 __data:
-    def  0x20000
+    def  0x8000
     def  0x4000
     def  __constant
     def  __program
@@ -9,9 +9,6 @@ __data:
 __constant:
 str_result:
     def  "result of convert "
-str_endl:
-    def  "\n"
-
 str_itf:
     def  "integer to floating point: "
 str_fti:
@@ -23,10 +20,6 @@ str_stf:
 str_array:
     def  str_itf, str_fti, str_its, str_stf
 
-string_attach_pointer:
-    def  string_attach, 0
-string_temp_pointer:
-    def  string_temp, 0
 string_attach:
     def  ".666"
 string_temp:
@@ -37,38 +30,40 @@ __program:
     itf  r1
     addf r1, 0.6789
     mov  a1, 0
-    call 1, 0, print
+    call 0, print
     mov  a1, r1
-    int  3
-    call 0, 0, newline
+    int  "PutFloat"
+    call 0, newline
 
     subf r1, 100.233
     mov  a1, r1
-    int  3
-    call 0, 0, newline
+    int  "PutFloat"
+    call 0, newline
     fti  r1
     mov  a1, 1
-    call 1, 0, print
+    call 0, print
     mov  a1, r1
-    int  2
-    call 0, 0, newline
+    int  "PutInteger"
+    call 0, newline
 
-    ld   r2, string_temp_pointer
+    mov  r2, string_temp
+    news r2
     its  r2, r1
     mov  a1, 2
-    call 1, 0, print
-    mov  a1, string_temp
-    int  4
-    call 0, 0, newline
+    call 0, print
+    mov  a1, r2
+    int  "PutString"
+    call 0, newline
 
-    ld   r3, string_attach_pointer
+    mov  r3, string_attach
+    news r3
     adds r2, r3
     stf  r1, r2
     mov  a1, 3
-    call 1, 0, print
+    call 0, print
     mov  a1, r1
-    int  3
-    call 0, 0, newline
+    int  "PutFloat"
+    call 0, newline
 
     end
 
@@ -77,13 +72,13 @@ print:
     mov  a2, str_array
     add  a2, a1
     mov  a1, str_result
-    int  4
+    int  "PutRawString"
     ld   a1, a2
     and  a1, 0xffffffff
-    int  4
+    int  "PutRawString"
     ret
 
 newline:
-    mov  a1, str_endl
-    int  4
+    mov  a1, '\n'
+    int  "PutChar"
     ret

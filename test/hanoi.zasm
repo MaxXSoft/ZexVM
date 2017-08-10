@@ -1,7 +1,7 @@
 	header
 
 __data:
-	def  0x20000
+	def  0x8000
 	def  0x4000
 	def  __constant
 	def  __program
@@ -34,7 +34,7 @@ __program:
 	mov  a4, 0x43
 	int  "GetMillisecond"
 	mov  r7, rv
-	call 4, 0, hanoi
+	call 0, hanoi
 	int  "GetMillisecond"
 	sub  rv, r7
 	mov  r7, rv
@@ -84,22 +84,22 @@ hanoi:
 	eq   r2, 1
 	jz   r2, else
 	mov  a3, a4
-	call 3, 0, move
+	call 0, move
 	jmp  endif
 else:
 	sub  a1, 1
 	mov  r2, a3
 	mov  a3, a4
 	mov  a4, r2
-	call 4, 0, hanoi
+	call 0, hanoi
 	add  a1, 1
-	call 3, 0, move
+	call 0, move
 	sub  a1, 1
 	mov  r2, a4
 	mov  a4, a3
 	mov  a3, a2
 	mov  a2, r2
-	call 4, 0, hanoi
+	call 0, hanoi
 endif:
 	pop a4
 	pop a3

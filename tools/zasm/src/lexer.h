@@ -10,10 +10,11 @@ enum InstOp {
     ADD, ADDF, SUB, SUBF, MUL, MULF, DIV, DIVF, NEG, NEGF, MOD, POW,   // Math
     LT, LTF, GT, GTF, LE, LEF, GE, GEF, EQ, NEQ,   // Logic
     JMP, JZ, JNZ, CALL, RET,   // Jump
-    MOV, POP, PUSH, LD, ST, STR, STC, INT,   // Basic
+    MOV, MOVL, POP, PUSH, PEEK, LD, ST, STR, STC, INT,   // Basic
+    NEWS, NEWL, DELS, DELL, SETR, ADR, RMR,   // GC
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
-    ADDS, LENS, EQS,   // String
-    ADDL, MOVL, CPL, LENL, POSL, EQL, GETL,   // List
+    ADDS, CPS, LENS, EQS, GETS, SETS,   // String
+    ADDL, CPL, LENL, EQL, GETL, SETL,   // List
     DEF, HEADER   // Pseudo instruction
 };
 

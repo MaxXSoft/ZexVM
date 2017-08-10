@@ -9,20 +9,17 @@ union Number {
 };
 
 struct String {
-    unsigned int len;   // TODO: remove
+    unsigned int reserved;
     unsigned int position;
 };
 
 struct List {
-    unsigned int len;   // TODO: remove
+    unsigned int reserved;
     unsigned int position;
 };
 
 struct Function {
-    unsigned char reserved;
-    unsigned char arg_count;
-    unsigned short arg_stack_pointer;
-    // unsigned int env_pointer;
+    unsigned int env_pointer;
     unsigned int position;
 };
 

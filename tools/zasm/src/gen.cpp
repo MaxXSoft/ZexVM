@@ -9,9 +9,7 @@
 namespace {
 
 struct Function {
-    unsigned char reserved;
-    unsigned char arg_count;
-    unsigned short arg_stack_pointer;
+    unsigned int env_pointer;
     unsigned int position;
 };
 
@@ -55,7 +53,7 @@ struct InstVoid {
 enum OpType {
     kIntImm, kFloatImm,
     kReg, kRegReg, kRegInt, kVoid,
-    kCall, kST, kINT, kMOVL
+    kCall, kST, kINT, kMOVL, kSETL
 };
 
 int op_type[] = {
@@ -64,16 +62,16 @@ int op_type[] = {
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kReg, kReg, kIntImm, kFloatImm,
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kIntImm,
     kRegInt, kIntImm, kIntImm, kCall, kVoid,
-    kIntImm, kReg, kRegInt, kIntImm, kST, kIntImm, kIntImm, kINT,
+    kIntImm, kMOVL, kReg, kRegInt, kReg, kIntImm, kST, kIntImm, kIntImm, kINT,
+    kReg, kRegReg, kReg, kReg, kReg, kRegReg, kRegReg,
     kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
-    kRegReg, kRegReg, kRegReg,
-    kRegReg, kMOVL, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg
+    kRegReg, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg,
+    kRegReg, kRegReg, kRegReg, kRegReg, kRegReg, kSETL
 };
 
 std::map<std::string, unsigned int> lab_list;
 std::multimap<std::string, unsigned int> lab_fill;
 std::string section_tag;
-// unsigned int arg_stack_size = 0;
 
 template <typename T>
 inline void WriteBytes(std::ofstream &out, T &&content) {
@@ -205,24 +203,21 @@ bool Generator::HandleOperator() {
                 return true;
             }
             else if (tok_type == kNumber) {
-                auto count = lexer_.num_val();
-                if (Next() == ',' && Next() == kNumber) {
-                    auto stack = lexer_.num_val();
-                    if (Next() == ',') {
-                        Next();
-                        Function func = {0, (unsigned char)count, (unsigned short)stack, 0};
-                        GenRegReg(0, 0);
-                        if (tok_type == kNumber) {
-                            func.position = lexer_.num_val();
-                            WriteBytes(out_, func);
-                            return true;
-                        }
-                        else if (tok_type == kLabelRef) {
-                            WriteBytes(out_, func);
-                            out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
-                            HandleLabelRef();
-                            return true;
-                        }
+                auto env = lexer_.num_val();
+                if (Next() == ',') {
+                    Next();
+                    Function func = {env, 0};
+                    GenRegReg(0, 0);
+                    if (tok_type == kNumber) {
+                        func.position = lexer_.num_val();
+                        WriteBytes(out_, func);
+                        return true;
+                    }
+                    else if (tok_type == kLabelRef) {
+                        WriteBytes(out_, func);
+                        out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
+                        HandleLabelRef();
+                        return true;
                     }
                 }
             }
@@ -299,6 +294,20 @@ bool Generator::HandleOperator() {
             }
             return false;
         }
+        case kSETL: {
+            if (Next() == kRegister) {
+                auto reg1 = lexer_.reg_val();
+                if (Next() == ',' && Next() == kRegister) {
+                    auto reg2 = lexer_.reg_val();
+                    GenRegReg(reg1, reg2);
+                    if (Next() == ',' && Next() == kRegister) {
+                        WriteBytes(out_, lexer_.reg_val());
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
         default: {
             return false;
         }
@@ -358,9 +367,6 @@ int Generator::Generate() {
                         switch (Next()) {
                             case kNumber: {
                                 auto num = lexer_.num_val();
-                                // if ((long long)out_.tellp() == kArgStackPos) {
-                                //     arg_stack_size = num;
-                                // }
                                 WriteBytes(out_, num);
                                 break;
                             }

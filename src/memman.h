@@ -35,7 +35,7 @@ public:
         return *(Register *)(stack_.get() + stack_ptr_);
     }
 
-    Register Peek(MemSizeT offset = 0) {
+    Register Peek(MemSizeT offset) {
         if (stack_ptr_ - offset < sizeof(Register)) {
             mem_error_ = true;
             return {0};

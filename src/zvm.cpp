@@ -14,21 +14,20 @@ enum InstOp {
     ADD, ADDF, SUB, SUBF, MUL, MULF, DIV, DIVF, NEG, NEGF, MOD, POW,   // Math
     LT, LTF, GT, GTF, LE, LEF, GE, GEF, EQ, NEQ,   // Logic
     JMP, JZ, JNZ, CALL, RET,   // Jump
-    MOV, POP, PUSH, LD, ST, STR, STC, INT,   // Basic
+    MOV, MOVL, POP, PUSH, PEEK, LD, ST, STR, STC, INT,   // Basic
+    NEWS, NEWL, DELS, DELL, SETR, ADR, RMR,   // GC
+    // SETR (set root), ADR (add ref), RMR (remove ref)
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
-    ADDS, LENS, EQS,   // String
-    ADDL, MOVL, CPL, LENL, POSL, EQL, GETL   // List
-    // TODO:
-    // add: PEEK, NEWS, NEWL, DELS, DELL, CPS (copy string), 
-    //      GETS, SETS, SETL, SETR, ADR, RMR
-    // remove: POSL
+    ADDS, CPS, LENS, EQS, GETS, SETS,   // String
+    ADDL, CPL, LENL, EQL, GETL, SETL   // List
+// TODO: add: GETS, SETS, SETL
 };
 
 enum InstReg {
     IMM,   // marked as an immediate number
     R1, R2, R3, R4, R5, R6, R7,   // general registers
     A1, A2, A3, A4, A5, A6, RV,   // function registers
-    // (A1-A5: args, A6: arg6 or environment, RV: ret value)
+    // (A1-A6: args, RV: environment pointer and ret value)
     PC   // program counter
 };
 
@@ -39,9 +38,8 @@ enum InstLen : zvm::MemSizeT {
     itRR = sizeof(unsigned char) * 2, 
     itRI = sizeof(unsigned char) * 2 + sizeof(unsigned int), 
     itRIF = sizeof(unsigned char) * 2 + sizeof(double), 
-    itII = sizeof(unsigned char) * 2 + sizeof(unsigned int) * 2
-    // itRRR = sizeof(unsigned char) * 3, 
-    // itRRI = sizeof(unsigned char) * 2 + sizeof(unsigned int)
+    itII = sizeof(unsigned char) * 2 + sizeof(unsigned int) * 2, 
+    itRRR = sizeof(unsigned char) * 3
 };
 
 union InstImm {
@@ -149,14 +147,6 @@ int ZexVM::Run() {
 #define NEXT(inst_len) SwitchInst(inst_len); \
         if (reg_pc >= kCacheSize) goto _PERR; \
         goto *inst_list[inst->op]
-// #define NEXT(inst_len) \
-//         reg_pc += (inst_len); \
-//         if (reg_pc >= kCacheSize) goto _PERR; \
-//         inst = (VMInst *)(cache_.data() + reg_pc); \
-//         rx_index = inst->reg >> 4; \
-//         ry_index = inst->reg & 0x0F; \
-//         imm_mode = !(inst->reg & 0x0F); \
-//         goto *inst_list[inst->op]
 
     if (program_error_) return kProgramError;
 
@@ -172,10 +162,11 @@ int ZexVM::Run() {
         &&_ADD, &&_ADDF, &&_SUB, &&_SUBF, &&_MUL, &&_MULF, &&_DIV, &&_DIVF, &&_NEG, &&_NEGF, &&_MOD, &&_POW,
         &&_LT, &&_LTF, &&_GT, &&_GTF, &&_LE, &&_LEF, &&_GE, &&_GEF, &&_EQ, &&_NEQ,
         &&_JMP, &&_JZ, &&_JNZ, &&_CALL, &&_RET,
-        &&_MOV, &&_POP, &&_PUSH, &&_LD, &&_ST, &&_STR, &&_STC, &&_INT,
+        &&_MOV, &&_MOVL, &&_POP, &&_PUSH, &&_PEEK, &&_LD, &&_ST, &&_STR, &&_STC, &&_INT,
+        &&_NEWS, &&_NEWL, &&_DELS, &&_DELL, &&_SETR, &&_ADR, &&_RMR,
         &&_ITF, &&_FTI, &&_ITS, &&_STI, &&_FTS, &&_STF,
-        &&_ADDS, &&_LENS, &&_EQS,
-        &&_ADDL, &&_MOVL, &&_CPL, &&_LENL, &&_POSL, &&_EQL, &&_GETL
+        &&_ADDS, &&_CPS, &&_LENS, &&_EQS, &&_GETS, &&_SETS,
+        &&_ADDL, &&_CPL, &&_LENL, &&_EQL, &&_GETL, &&_SETL
     };
 
     auto SwitchInst = [&](MemSizeT inst_len) {
@@ -238,12 +229,10 @@ int ZexVM::Run() {
             NEXT(imm_mode ? itRI : itRR);
         }
     }
-    _CALL: {   // TODO
+    _CALL: {
         temp.num.doub = imm_mode ? inst->imm.fp_val : reg_x.doub;
-        if (temp.func.arg_count > 6) {
-            reg_[A6].long_long = temp.func.arg_stack_pointer;
-        }
-        reg_pc += imm_mode ? itRIF : itR;
+        reg_[RV].long_long = temp.func.env_pointer;
+        reg_pc += imm_mode ? itRI : itR;
         if (!mem_.Push(reg_[PC])) goto _SERR;
         reg_pc = temp.func.position;
         NEXT(0);
@@ -257,6 +246,11 @@ int ZexVM::Run() {
         reg_x.long_long = imm_mode ? inst->imm.int_val : reg_y.long_long;
         NEXT(imm_mode ? itRI : itRR);
     }
+    _MOVL: {
+        if (!imm_mode) goto _PERR;   // imm_mode ONLY!
+        reg_x.doub = inst->imm.fp_val;
+        NEXT(itRIF);
+    }
     _POP: {
         reg_x = mem_.Pop();
         if (mem_.mem_error()) goto _SERR;
@@ -266,6 +260,11 @@ int ZexVM::Run() {
         temp.num.long_long = inst->imm.int_val;
         if (!mem_.Push(imm_mode ? temp.num : reg_x)) goto _SERR;
         NEXT(imm_mode ? itRI : itR);
+    }
+    _PEEK: {
+        reg_x = mem_.Peek(reg_x.long_long);
+        if (mem_.mem_error()) goto _MERR;
+        NEXT(itR);
     }
     _LD: {
         temp.num.long_long = imm_mode ? inst->imm.int_val : reg_y.long_long;
@@ -304,6 +303,45 @@ int ZexVM::Run() {
         if (mem_.mem_error()) goto _MERR;
         NEXT(itI);
     }
+    _NEWS: {
+        temp.str = mem_.AddStringObj(reg_x.long_long);
+        if (mem_.mem_error()) goto _MERR;
+        reg_x = temp.num;
+        NEXT(itR);
+    }
+    _NEWL: {
+        temp.list = mem_.AddListObj(reg_x.long_long, reg_y.long_long);
+        if (mem_.mem_error()) goto _MERR;
+        reg_x = temp.num;
+        NEXT(itRR);
+    }
+    _DELS: _DELL: {
+        temp.num = reg_x;
+        if (inst->op == DELS) {
+            if (!mem_.DelStringObj(temp.str)) goto _MERR;
+        }
+        else {
+            if (!mem_.DelListObj(temp.list)) goto _MERR;
+        }
+        NEXT(itR);
+    }
+    _SETR: {
+        temp.num = reg_x;
+        mem_.SetRootEnv(temp.list);
+        NEXT(itR);
+    }
+    _ADR: _RMR: {
+        temp.num = reg_x;
+        ZValue opr = {reg_y};
+        if (inst->op == ADR) {
+            mem_.AddListRef(temp.list, opr.list);
+        }
+        else {
+            mem_.DelListRef(temp.list, opr.list);
+        }
+        if (mem_.mem_error()) goto _MERR;
+    }
+    NEXT(itRR);
     _ITF: {
         reg_x.doub = (double)reg_x.long_long;
         NEXT(itR);
@@ -350,9 +388,27 @@ int ZexVM::Run() {
         }
     }
     NEXT(itRR);
+    _CPS: {
+        ZValue opr = {reg_y};
+        temp.str = mem_.StringCopy(opr.str);
+        if (mem_.mem_error()) goto _MERR;
+        reg_x = temp.num;
+    }
+    NEXT(itRR);
     _LENS: {
         temp.num = reg_y;
         reg_x.long_long = mem_.StringLength(temp.str);
+        NEXT(itRR);
+    }
+    _GETS: {
+        temp.num = reg_x;
+        if (!mem_.GetStringObj(temp.str, reg_y.long_long)) goto _MERR;
+        NEXT(itRR);
+    }
+    _SETS: {
+        temp.num = reg_x;
+        if (!mem_.SetStringObj(temp.str, reg_y.long_long)) goto _MERR;
+        reg_x = temp.num;
         NEXT(itRR);
     }
     _ADDL: {
@@ -362,11 +418,6 @@ int ZexVM::Run() {
         reg_x = temp.num;
     }
     NEXT(itRR);
-    _MOVL: {
-        if (!imm_mode) goto _PERR;   // imm_mode ONLY!
-        reg_x.doub = inst->imm.fp_val;
-        NEXT(itRIF);
-    }
     _CPL: {
         ZValue opr = {reg_y};
         temp.list = mem_.ListCopy(opr.list);
@@ -378,11 +429,6 @@ int ZexVM::Run() {
         temp.num = reg_y;
         reg_x.long_long = mem_.ListLength(temp.list);
         if (mem_.mem_error()) goto _MERR;
-        NEXT(itRR);
-    }
-    _POSL: {   // TODO: remove
-        temp.num = reg_y;
-        reg_x.long_long = temp.list.position;
         NEXT(itRR);
     }
     _EQL: {
@@ -398,6 +444,12 @@ int ZexVM::Run() {
         if (mem_.mem_error()) goto _MERR;
         NEXT(itRR);
     }
+    _SETL: {
+        temp.num = reg_x;
+        ZValue opr = {reg_y};
+        if (!mem_.SetListItem(temp.list, opr.num.long_long, reg_[*(char *)(cache_.data() + reg_pc + itRR)])) goto _MERR;
+    }
+    NEXT(itRRR);
 
 #undef reg_x
 #undef reg_y

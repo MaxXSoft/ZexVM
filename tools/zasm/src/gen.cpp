@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "xstl/str_hash.h"
+
 namespace {
 
 struct Function {
@@ -71,7 +73,7 @@ int op_type[] = {
 std::map<std::string, unsigned int> lab_list;
 std::multimap<std::string, unsigned int> lab_fill;
 std::string section_tag;
-unsigned int arg_stack_size = 0;
+// unsigned int arg_stack_size = 0;
 
 template <typename T>
 inline void WriteBytes(std::ofstream &out, T &&content) {
@@ -262,8 +264,16 @@ bool Generator::HandleOperator() {
             return false;
         }
         case kINT: {
-            if (Next() == kNumber) {
+            Next();
+            if (tok_type == kNumber) {
                 InstIntOnly inst = {index, lexer_.num_val()};
+                WriteBytes(out_, inst);
+                return true;
+            }
+            else if (tok_type == kString) {
+                auto data = lexer_.str_val().c_str();
+                auto hash = (unsigned int)(xstl::StringHashRT(data) & 0xFFFFFFFF);
+                InstIntOnly inst = {index, hash};
                 WriteBytes(out_, inst);
                 return true;
             }
@@ -274,11 +284,7 @@ bool Generator::HandleOperator() {
                 auto reg = lexer_.reg_val();
                 if (Next() == ',') {
                     Next();
-                    if (tok_type == kRegister) {
-                        GenRegReg(reg, lexer_.reg_val());
-                        return true;
-                    }
-                    else if (tok_type == kNumber) {
+                    if (tok_type == kNumber) {
                         GenRegReg(reg, 0);
                         auto num_val = (int)lexer_.num_val();
                         WriteBytes(out_, (long long)num_val);
@@ -325,7 +331,7 @@ int Generator::Generate() {
                     }
                     else {
                         if (section_tag == "CONSTANT") {
-                            jmp_pos = jmp_pos - lab_list["__CONSTANT"] + arg_stack_size;
+                            jmp_pos = jmp_pos - lab_list["__CONSTANT"];
                         }
                         else if (section_tag == "PROGRAM") {
                             jmp_pos = jmp_pos - lab_list["__PROGRAM"];
@@ -352,9 +358,9 @@ int Generator::Generate() {
                         switch (Next()) {
                             case kNumber: {
                                 auto num = lexer_.num_val();
-                                if ((long long)out_.tellp() == kArgStackPos) {
-                                    arg_stack_size = num;
-                                }
+                                // if ((long long)out_.tellp() == kArgStackPos) {
+                                //     arg_stack_size = num;
+                                // }
                                 WriteBytes(out_, num);
                                 break;
                             }

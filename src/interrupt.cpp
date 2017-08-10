@@ -37,7 +37,6 @@ zvm::ZValue PutString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     return null_value;
 }
 
-// TODO
 zvm::ZValue PutRawString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     fprintf(stderr, "%s", &mem[arg[0].long_long]);
     return null_value;
@@ -63,12 +62,6 @@ zvm::ZValue GetString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     return temp;
 }
 
-// unsafe
-// zvm::ZValue GetRawString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
-//     scanf("%s", &mem[arg[0].long_long]);
-//     return null_value;
-// }
-
 zvm::ZValue AddChar(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     putchar((int)(arg[0].long_long & 0xFF));
     return null_value;
@@ -80,7 +73,6 @@ zvm::ZValue AddString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     return null_value;
 }
 
-// TODO
 zvm::ZValue AddRawString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     printf("%s", &mem[arg[0].long_long]);
     return null_value;
@@ -178,11 +170,13 @@ InterruptManager::InterruptManager() {
     RegisterInterrupt("PutInteger", PutInteger);
     RegisterInterrupt("PutFloat", PutFloat);
     RegisterInterrupt("PutString", PutString);
+    RegisterInterrupt("PutRawString", PutRawString);
     RegisterInterrupt("GetInteger", GetInteger);
     RegisterInterrupt("GetFloat", GetFloat);
     RegisterInterrupt("GetString", GetString);
     RegisterInterrupt("AddChar", AddChar);
     RegisterInterrupt("AddString", AddString);
+    RegisterInterrupt("AddRawString", AddRawString);
     RegisterInterrupt("Flush", Flush);
     RegisterInterrupt("GetMillisecond", GetMillisecond);
     RegisterInterrupt("Sleep", Sleep);
@@ -198,7 +192,7 @@ InterruptManager::InterruptManager() {
 
 bool InterruptManager::RegisterInterrupt(const char *name, IntFunc func) {
     auto hash = (unsigned int)(xstl::StringHashRT(name) & 0xFFFFFFFF);
-    if (func_set_.find(hash) == func_set_.end()) return false;
+    if (func_set_.find(hash) != func_set_.end()) return false;
     func_set_.insert({hash, func});
     return true;
 }

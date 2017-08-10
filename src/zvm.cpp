@@ -126,7 +126,7 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
     file.read((char *)&const_pool_size, sizeof(MemSizeT));
     file.read((char *)&temp, sizeof(MemSizeT));
     const_pool_size = temp - const_pool_size;
-    if (mem_size > kMemorySize || const_pool_size >= mem_size) return false;
+    if (const_pool_size >= mem_size) return false;
     mem_.set_memory_size(mem_size);
     mem_.set_stack_size(stack_size);
     mem_.ResetMemory();
@@ -146,14 +146,17 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
 int ZexVM::Run() {
 #define reg_x reg_[rx_index]
 #define reg_y reg_[ry_index]
-#define NEXT(inst_len) \
-        reg_pc += (inst_len); \
+#define NEXT(inst_len) SwitchInst(inst_len); \
         if (reg_pc >= kCacheSize) goto _PERR; \
-        inst = (VMInst *)(cache_.data() + reg_pc); \
-        rx_index = inst->reg >> 4; \
-        ry_index = inst->reg & 0x0F; \
-        imm_mode = !(inst->reg & 0x0F); \
-        goto *inst_list[inst->op];
+        goto *inst_list[inst->op]
+// #define NEXT(inst_len) \
+//         reg_pc += (inst_len); \
+//         if (reg_pc >= kCacheSize) goto _PERR; \
+//         inst = (VMInst *)(cache_.data() + reg_pc); \
+//         rx_index = inst->reg >> 4; \
+//         ry_index = inst->reg & 0x0F; \
+//         imm_mode = !(inst->reg & 0x0F); \
+//         goto *inst_list[inst->op]
 
     if (program_error_) return kProgramError;
 
@@ -173,6 +176,14 @@ int ZexVM::Run() {
         &&_ITF, &&_FTI, &&_ITS, &&_STI, &&_FTS, &&_STF,
         &&_ADDS, &&_LENS, &&_EQS,
         &&_ADDL, &&_MOVL, &&_CPL, &&_LENL, &&_POSL, &&_EQL, &&_GETL
+    };
+
+    auto SwitchInst = [&](MemSizeT inst_len) {
+        reg_pc += inst_len;
+        inst = (VMInst *)(cache_.data() + reg_pc);
+        rx_index = inst->reg >> 4;
+        ry_index = inst->reg & 0x0F;
+        imm_mode = !(inst->reg & 0x0F);
     };
 
     NEXT(0);   // start running
@@ -337,8 +348,8 @@ int ZexVM::Run() {
             reg_x.long_long = mem_.StringCompare(temp.str, opr.str);
             if (mem_.mem_error()) goto _MERR;
         }
-        NEXT(itRR);
     }
+    NEXT(itRR);
     _LENS: {
         temp.num = reg_y;
         reg_x.long_long = mem_.StringLength(temp.str);
@@ -349,8 +360,8 @@ int ZexVM::Run() {
         ZValue opr = {reg_y};
         if (!mem_.ListCatenate(temp.list, opr.list)) goto _MERR;
         reg_x = temp.num;
-        NEXT(itRR);
     }
+    NEXT(itRR);
     _MOVL: {
         if (!imm_mode) goto _PERR;   // imm_mode ONLY!
         reg_x.doub = inst->imm.fp_val;
@@ -361,8 +372,8 @@ int ZexVM::Run() {
         temp.list = mem_.ListCopy(opr.list);
         if (mem_.mem_error()) goto _MERR;
         reg_x = temp.num;
-        NEXT(itRR);
     }
+    NEXT(itRR);
     _LENL: {
         temp.num = reg_y;
         reg_x.long_long = mem_.ListLength(temp.list);
@@ -379,8 +390,8 @@ int ZexVM::Run() {
         ZValue opr = {reg_y};
         reg_x.long_long = mem_.ListCompare(temp.list, opr.list);
         if (mem_.mem_error()) goto _MERR;
-        NEXT(itRR);
     }
+    NEXT(itRR);
     _GETL: {
         temp.num = reg_y;
         reg_x = mem_.GetListItem(temp.list, reg_x.long_long);

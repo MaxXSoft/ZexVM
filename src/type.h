@@ -45,7 +45,7 @@ union ZValue {
 //     char type;
 // };
 
-const unsigned int kMemorySize = 1024 * 128;   // 32k
+const unsigned int kMemorySize = 1024 * 32;   // 32k
 const unsigned int kStackSize = 1024 * 16;    // 16k
 const unsigned int kCacheSize = 1024 * 512;   // 512k
 const unsigned int kGCPoolSize = 1024 * 128;  // 128k
@@ -55,8 +55,8 @@ const char kArgRegisterCount = 6;
 const char kArgRegisterOffset = 8;
 
 const char kBytecodeHeaderLength = sizeof(unsigned char) * 5 + sizeof(unsigned int) * 4;
-const unsigned char kCurrentVersion[2] = {0, 5};
-const unsigned char kMinimumVersion[2] = {0, 4};
+const unsigned char kCurrentVersion[2] = {0, 6};
+const unsigned char kMinimumVersion[2] = {0, 6};
 
 enum VMReturnCode {
     kFinished, 

@@ -23,16 +23,27 @@ msg2:
 __program:
 	mov  r1, 1
 	mov  a1, msg1
-	int  4
-	int  5
+	int  "PutRawString"
+	int  "GetInteger"
 	mov  r2, rv
 	mov  a1, msg2
-	int  4
+	int  "PutRawString"
 	mov  a1, r2
 	mov  a2, 0x41
 	mov  a3, 0x42
 	mov  a4, 0x43
+	int  "GetMillisecond"
+	mov  r7, rv
 	call 4, 0, hanoi
+	int  "GetMillisecond"
+	sub  rv, r7
+	mov  r7, rv
+	itf  r7
+	divf r7, 1000.0
+	mov  a1, '\n'
+	int  "PutChar"
+	mov  a1, r7
+	int  "PutFloat"
 	end
 
 move:
@@ -41,24 +52,24 @@ move:
 	push a3
 	mov  r2, a1
 	mov  a1, info1
-	int  4
+	int  "PutRawString"
 	mov  a1, r1
-	int  2
+	int  "PutInteger"
 	add  r1, 1
 	mov  a1, info2
-	int  4
+	int  "PutRawString"
 	mov  a1, r2
-	int  2
+	int  "PutInteger"
 	mov  a1, info3
-	int  4
+	int  "PutRawString"
 	mov  a1, a2
-	int  0
+	int  "PutChar"
 	mov  a1, info4
-	int  4
+	int  "PutRawString"
 	mov  a1, a3
-	int  0
+	int  "PutChar"
 	mov  a1, 0x0A
-	int  0
+	int  "PutChar"
 	pop a3
 	pop a2
 	pop a1

@@ -115,7 +115,7 @@ int main(int argc, const char *argv[]) {
     ZexVM vm(gc_pool_size, int_manager);
 
     if (vm.LoadProgram(in)) {
-        if (!arg_list.empty()) vm.SetStartupArguments(arg_list);
+        vm.SetStartupArguments(arg_list);
         auto ret_val = vm.Run();
         if(ret_val == kFinished) {
             PrintMessage("success!");

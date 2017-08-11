@@ -143,16 +143,20 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
 }
 
 bool ZexVM::SetStartupArguments(const std::vector<std::string> &arg_list) {
-    if (arg_list.empty()) return false;
-    auto list = std::make_unique<ZValue[]>(arg_list.size());
-    int index = 0;
     ZValue temp;
-    for (const auto &i : arg_list) {
-        temp.str = mem_.AddStringObj(i);
-        if (mem_.mem_error()) return !(program_error_ = true);
-        list[index++] = temp;
+    if (arg_list.empty()) {
+        temp.list = mem_.AddListObj((MemSizeT)0, 0);
     }
-    temp.list = mem_.AddListObj(list.get(), arg_list.size());
+    else {
+        auto list = std::make_unique<ZValue[]>(arg_list.size());
+        int index = 0;
+        for (const auto &i : arg_list) {
+            temp.str = mem_.AddStringObj(i);
+            if (mem_.mem_error()) return !(program_error_ = true);
+            list[index++] = temp;
+        }
+        temp.list = mem_.AddListObj(list.get(), arg_list.size());
+    }
     if (mem_.mem_error()) return !(program_error_ = true);
     reg_[A1] = temp.num;
     return true;

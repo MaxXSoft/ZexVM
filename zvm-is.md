@@ -143,7 +143,7 @@ There are 7 types of instructions in ZexVM.
 | DELL | `DELL Reg1` | delete Reg1.List |
 | SETR | `SETR Reg1` | GC.SetTracingRoot(Reg1.List) |
 | ADR | `ADR Reg1, Reg2` | Add Reg2.List as sub-object of Reg1.List in order to tracing by GC |
-| RMR | `RMR Reg1, Reg2` | Remove Reg2.List from list of sub-objects in Reg1.List |
+| RMR | `RMR Reg1, Reg2` | Remove Reg2.List from list of sub-objects in Reg1.List |
 | ITF | `ITF Reg1` | Reg1.Double = (Double)Reg1.Int |
 | FTI | `FTI Reg1` | Reg1.Int = (Int)Reg1.Double |
 | ITS | `ITS Reg1, Reg2` | Reg1.String = (String)Reg2.Int |

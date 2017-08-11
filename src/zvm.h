@@ -2,8 +2,7 @@
 #define ZVM_ZVM_H_
 
 #include <fstream>
-#include <cstddef>
-#include <stack>
+// #include <cstddef>
 #include <array>
 
 #include "type.h"
@@ -19,6 +18,7 @@ public:
     ~ZexVM() {}
 
     bool LoadProgram(std::ifstream &file);
+    bool SetStartupArguments(const std::vector<std::string> &arg_list);
     int Run();
 
     bool program_error() const { return program_error_; }
@@ -29,8 +29,6 @@ private:
     bool program_error_;
     std::array<Register, kRegisterCount> reg_;
     std::array<char, kCacheSize> cache_;
-    // std::array<char, kMemorySize> mem_;   // argument stack, constant pool, other data
-    // std::stack<Register> stack_;
     MemoryManager mem_;
     InterruptManager &int_manager_;
 };

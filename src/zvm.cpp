@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <string>
 #include <cstring>
+#include <vector>
+#include <memory>
 
 namespace {
 
@@ -20,7 +22,6 @@ enum InstOp {
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, CPS, LENS, EQS, GETS, SETS,   // String
     ADDL, CPL, LENL, EQL, GETL, SETL   // List
-// TODO: add: GETS, SETS, SETL
 };
 
 enum InstReg {
@@ -139,6 +140,22 @@ bool ZexVM::LoadProgram(std::ifstream &file) {
     }
 
     return !(program_error_ = false);
+}
+
+bool ZexVM::SetStartupArguments(const std::vector<std::string> &arg_list) {
+    if (arg_list.empty()) return false;
+    auto list = std::make_unique<ZValue[]>(arg_list.size());
+    int index = 0;
+    ZValue temp;
+    for (const auto &i : arg_list) {
+        temp.str = mem_.AddStringObj(i);
+        if (mem_.mem_error()) return !(program_error_ = true);
+        list[index++] = temp;
+    }
+    temp.list = mem_.AddListObj(list.get(), arg_list.size());
+    if (mem_.mem_error()) return !(program_error_ = true);
+    reg_[A1] = temp.num;
+    return true;
 }
 
 int ZexVM::Run() {

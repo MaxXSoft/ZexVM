@@ -36,7 +36,7 @@ public:
                     if (it == handlers_.end()) return ErrorHandler(arg_name);
                     handler = it->second;
                 }
-                handler((i + 1 >= argc || argv[++i][0] == '-') ? "" : argv[i]);
+                if (handler((i + 1 >= argc || argv[++i][0] == '-') ? "" : argv[i])) return false;
             }
             else {
                 auto it = handlers_.find("");

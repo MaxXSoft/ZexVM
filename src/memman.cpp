@@ -25,6 +25,15 @@ String MemoryManager::AddStringObj(MemSizeT position) {
     return {0, id};
 }
 
+String MemoryManager::AddStringObj(const std::string &str) {
+    auto id = gc_.AddObjFromMemory(str.c_str(), str.length() + 1);
+    if (gc_.gc_error()) {
+        mem_error_ = true;
+        return {0, 0};
+    }
+    return {0, id};
+}
+
 List MemoryManager::AddListObj(MemSizeT position, MemSizeT length) {
     auto ReturnError = [this]() {
         mem_error_ = true;
@@ -34,6 +43,15 @@ List MemoryManager::AddListObj(MemSizeT position, MemSizeT length) {
     if (position + length * sizeof(Register) >= mem_size_) return ReturnError();
     auto id = gc_.AddObjFromMemory(mem_.get() + position, length * sizeof(Register));
     if (gc_.gc_error()) return ReturnError();
+    return {0, id};
+}
+
+List MemoryManager::AddListObj(const ZValue *data, MemSizeT length) {
+    auto id = gc_.AddObjFromMemory((char *)data, length * sizeof(Register));
+    if (gc_.gc_error()) {
+        mem_error_ = true;
+        return {0, 0};
+    }
     return {0, id};
 }
 

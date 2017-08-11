@@ -2,6 +2,7 @@
 #define ZVM_MEMMAN_H_
 
 #include <memory>
+#include <string>
 
 #include "type.h"
 #include "gc.h"
@@ -60,7 +61,9 @@ public:
     }
 
     String AddStringObj(MemSizeT position);
+    String AddStringObj(const std::string &str);
     List AddListObj(MemSizeT position, MemSizeT length);
+    List AddListObj(const ZValue *data, MemSizeT length);
     bool DelStringObj(String str);
     bool DelListObj(List list);
 

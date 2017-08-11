@@ -19,15 +19,17 @@ else
 	opt_arg = -O$(opt_level)
 endif
 
+CC = $(cc) $(debug_arg) -std=c++14 $(opt_arg)
+
 .PHONY: all zvm zasm clean
 
 all: zvm zasm
 
 zvm: $(zvm_targets)
-	$(cc) $(debug_arg) $(zvm_targets) -o $(zvm_out) -std=c++14 $(opt_arg)
+	$(CC) $(zvm_targets) -o $(zvm_out)
 
 zasm: $(zasm_targets)
-	$(cc) $(debug_arg) $(zasm_targets) -o $(zasm_out) -std=c++14 $(opt_arg)
+	$(CC) $(zasm_targets) -o $(zasm_out)
 
 clean: clean_dbg
 	rm $(zvm_out) $(zasm_out)

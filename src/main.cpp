@@ -22,6 +22,8 @@ void PrintMessage(const std::string &str, int msg_code = 0) {
 void PrintHelp() {
     std::cout << "usage: zvm <bytecode files | options>" << std::endl;
     std::cout << "options:" << std::endl;
+    std::cout << "  -g --gc-pool\t\tSet the pool size of garbage collector" << std::endl;
+    std::cout << std::endl;
     std::cout << "  -h --help\t\tDisplay this help information" << std::endl;
     std::cout << "  -v --version\t\tDisplay zasm version information" << std::endl;
     std::cout << "For bug reporting instructions, please see:" << std::endl;

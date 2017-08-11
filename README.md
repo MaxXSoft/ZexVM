@@ -10,15 +10,17 @@ ZexVM has its own instruction set and assembly language (similar to x86), also h
 
 ## Features
 
-- `Function` type
+- Tracing garbage collection while runtime
+- `String` and `List` type data structure (controled by garbage collector)
+- `Function` type for a better support of anonymous functions and closures
 - 64-bit integer and floating point number
 - Call an external function by using `INT` instruction
 
-There is no appealing feature in the current version (000.001), but we will add a lot of new features in the future, such as: 
+There is no appealing feature in the current version (000.006), but we will add a lot of new features in the future, such as: 
 
-- Just-In-Time (JIT) compilation
+- Just-In-Time (JIT) compilation or other runtime optimizations
 - Class support and OOP
-- Garbage Colloction
+- More advanced functional programming support
 
 ## Build
 
@@ -51,21 +53,21 @@ If there are no errors in the assembly file, **ZASM** will generate a `.zbc` fil
 ./zvm <zbc file>
 ```
 
-For help information, please run command `--help`. 
+For help information, please run command `-h` or `--help`. 
 
 ## Instruction Set
 
-Please read [zvm-is.md](https://github.com/MaxXSoft/ZexVM/blob/master/zvm-is.md). 
+Please read [zvm-is.md](zvm-is.md). 
 
 ## Test Cases
 
 All of the test cases are in `test/` directory. 
 
-- **hello.zasm:** print "Hello world." in command line
-- **hanoi.zasm:** recursively solve the Hanoi Tower problem
-- **heart.zasm:** print a heart pattern
-- **conv.zasm:** test about type conversion
-- **funcs.zasm** functional test
+- **[hello.zasm](test/hello.zasm):** print "Hello world." in command line
+- **[hanoi.zasm](test/hanoi.zasm):** recursively solve the Hanoi Tower problem
+- **[heart.zasm](test/heart.zasm):** print a heart pattern
+- **[conv.zasm](test/conv.zasm):** test about type conversion
+- **[funcs.zasm](test/funcs.zasm)** functional test about interrupts and GC
 
 ## Copyright and License
 

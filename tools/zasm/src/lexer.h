@@ -11,7 +11,7 @@ enum InstOp {
     LT, LTF, GT, GTF, LE, LEF, GE, GEF, EQ, NEQ,   // Logic
     JMP, JZ, JNZ, CALL, RET,   // Jump
     MOV, MOVL, POP, PUSH, PEEK, LD, ST, STR, STC, INT,   // Basic
-    NEWS, NEWL, DELS, DELL, SETR, ADR, RMR,   // GC
+    NEWS, NEWL, NEWF, DELS, DELL, SETR, ADR, RMR,   // GC
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, CPS, LENS, EQS, GETS, SETS,   // String
     ADDL, CPL, LENL, EQL, GETL, SETL,   // List

@@ -2,7 +2,6 @@
 #define ZVM_ZVM_H_
 
 #include <fstream>
-// #include <cstddef>
 #include <array>
 
 #include "type.h"

@@ -26,22 +26,22 @@ main_for1_:
 	mov  a1, r6
 	mov  a2, 0
 	mov  a3, r5
-	call 0, f
+	call f
 	lef  rv, 0.0
 	jz   rv, main_else_
 	push r5
 	mov  a2, r5
-	call 0, h
+	call h
 	push rv
 	mov  a1, r6
 	addf a1, 0.01
-	call 0, h
+	call h
 	pop  r7
 	subf rv, r7
 	push rv
 	mov  a1, r6
 	addf a2, 0.01
-	call 0, h
+	call h
 	subf rv, r7          ; nz
 	pop  r4              ; nx
 	mov  r5, 0
@@ -53,7 +53,7 @@ main_for1_:
 	mulf a2, a2
 	addf a1, a2
 	mov  r7, rv          ; nz
-	call 0, sqrt
+	call sqrt
 	divf r5, rv          ; nd
 	addf r4, 0.01
 	subf r4, r7
@@ -63,18 +63,18 @@ main_for1_:
 	mulf r4, 5.0
 	fti  r4
 	mov  a1, r4
-	call 0, putchar
+	call putchar
 	pop  r5
 	jmp  main_if_end_
 main_else_:
 	mov  a1, 9
-	call 0, putchar
+	call putchar
 main_if_end_:
 	addf r6, 0.025
 	jmp  main_for1_
 main_for1_end_:
 	mov  a1, 10
-	call 0, putchar
+	call putchar
 	subf r5, 0.05
 	jmp  main_for0_
 main_for0_end_:
@@ -88,7 +88,7 @@ sqrt_while_:
 	mov  r3, r2
 	mulf r3, r3
 	subf a1, r3
-	call 0, abs
+	call abs
 	gtf  rv, 0.0000001
 	jz   rv, sqrt_while_end_
 	mov  r3, r1
@@ -161,7 +161,7 @@ h_for0_:
 	mov  r1, a2
 	gef  r1, 0.0
 	jz   r1, h_for0_end_
-	call 0, f    ; if
+	call f    ; if
 	lef  rv, 0.0
 	jz   rv, h_if0_end_
 	mov  rv, a2

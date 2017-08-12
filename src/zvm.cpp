@@ -17,7 +17,7 @@ enum InstOp {
     LT, LTF, GT, GTF, LE, LEF, GE, GEF, EQ, NEQ,   // Logic
     JMP, JZ, JNZ, CALL, RET,   // Jump
     MOV, MOVL, POP, PUSH, PEEK, LD, ST, STR, STC, INT,   // Basic
-    NEWS, NEWL, DELS, DELL, SETR, ADR, RMR,   // GC
+    NEWS, NEWL, NEWF, DELS, DELL, SETR, ADR, RMR,   // GC
     // SETR (set root), ADR (add ref), RMR (remove ref)
     ITF, FTI, ITS, STI, FTS, STF,   // Convert
     ADDS, CPS, LENS, EQS, GETS, SETS,   // String
@@ -184,7 +184,7 @@ int ZexVM::Run() {
         &&_LT, &&_LTF, &&_GT, &&_GTF, &&_LE, &&_LEF, &&_GE, &&_GEF, &&_EQ, &&_NEQ,
         &&_JMP, &&_JZ, &&_JNZ, &&_CALL, &&_RET,
         &&_MOV, &&_MOVL, &&_POP, &&_PUSH, &&_PEEK, &&_LD, &&_ST, &&_STR, &&_STC, &&_INT,
-        &&_NEWS, &&_NEWL, &&_DELS, &&_DELL, &&_SETR, &&_ADR, &&_RMR,
+        &&_NEWS, &&_NEWL, &&_NEWF, &&_DELS, &&_DELL, &&_SETR, &&_ADR, &&_RMR,
         &&_ITF, &&_FTI, &&_ITS, &&_STI, &&_FTS, &&_STF,
         &&_ADDS, &&_CPS, &&_LENS, &&_EQS, &&_GETS, &&_SETS,
         &&_ADDL, &&_CPL, &&_LENL, &&_EQL, &&_GETL, &&_SETL
@@ -251,10 +251,15 @@ int ZexVM::Run() {
         }
     }
     _CALL: {
-        temp.num.doub = imm_mode ? inst->imm.fp_val : reg_x.doub;
-        temp.list = {0, temp.func.env_pointer};
-        reg_[RV] = temp.num;
-        reg_pc += imm_mode ? itRIF : itR;
+        if (imm_mode) {
+            temp.func.position = inst->imm.int_val;
+            reg_pc += itRI;
+        }
+        else {
+            temp.num.doub = reg_x.doub;
+            reg_[RV] = temp.num;   // save env list to RV
+            reg_pc += itR;
+        }
         if (!mem_.Push(reg_[PC])) goto _SERR;
         reg_pc = temp.func.position;
         NEXT(0);
@@ -334,6 +339,13 @@ int ZexVM::Run() {
     _NEWL: {
         temp.list = mem_.AddListObj(reg_x.long_long, imm_mode ? inst->imm.int_val : reg_y.long_long);
         if (mem_.mem_error()) goto _MERR;
+        reg_x = temp.num;
+        NEXT(imm_mode ? itRI : itRR);
+    }
+    _NEWF: {
+        temp.num = reg_x;
+        temp.func.env_pointer = temp.list.position;
+        temp.func.position = imm_mode ? inst->imm.int_val : reg_y.long_long;
         reg_x = temp.num;
         NEXT(imm_mode ? itRI : itRR);
     }

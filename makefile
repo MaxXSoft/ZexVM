@@ -11,6 +11,8 @@ zasm_dir = tools/zasm/src/
 zasm_targets = $(zasm_dir)main.cpp $(zasm_dir)lexer.cpp $(zasm_dir)gen.cpp
 zasm_out = $(build_dir)zasm
 
+test_dir = test/
+
 ifeq ($(debug), true)
 	debug_arg = -g
 	opt_arg = 
@@ -21,7 +23,7 @@ endif
 
 CC = $(cc) $(debug_arg) -std=c++14 $(opt_arg)
 
-.PHONY: all zvm zasm clean
+.PHONY: all zvm zasm test clean clean_dbg clean_test
 
 all: zvm zasm
 
@@ -31,8 +33,17 @@ zvm: $(zvm_targets)
 zasm: $(zasm_targets)
 	$(CC) $(zasm_targets) -o $(zasm_out)
 
+test: $(zasm_out) $(test_dir)
+	@for name in `ls $(test_dir)*.zasm`; \
+	do \
+		$(zasm_out) $$name; \
+	done
+
 clean: clean_dbg
 	rm $(zvm_out) $(zasm_out)
 
 clean_dbg:
-	rm -r $(build_dir)*.dSYM
+	-rm -r $(build_dir)*.dSYM
+
+clean_test:
+	-rm $(test_dir)*.zbc

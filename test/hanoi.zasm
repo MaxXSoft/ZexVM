@@ -34,7 +34,7 @@ __program:
 	mov  a4, 0x43
 	int  "GetMillisecond"
 	mov  r7, rv
-	call 0, hanoi
+	call hanoi
 	int  "GetMillisecond"
 	sub  rv, r7
 	mov  r7, rv
@@ -84,22 +84,22 @@ hanoi:
 	eq   r2, 1
 	jz   r2, else
 	mov  a3, a4
-	call 0, move
+	call move
 	jmp  endif
 else:
 	sub  a1, 1
 	mov  r2, a3
 	mov  a3, a4
 	mov  a4, r2
-	call 0, hanoi
+	call hanoi
 	add  a1, 1
-	call 0, move
+	call move
 	sub  a1, 1
 	mov  r2, a4
 	mov  a4, a3
 	mov  a3, a2
 	mov  a2, r2
-	call 0, hanoi
+	call hanoi
 endif:
 	pop a4
 	pop a3

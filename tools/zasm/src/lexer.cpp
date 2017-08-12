@@ -14,7 +14,7 @@ const char *op_str[] = {
     "LT", "LTF", "GT", "GTF", "LE", "LEF", "GE", "GEF", "EQ", "NEQ",
     "JMP", "JZ", "JNZ", "CALL", "RET",
     "MOV", "MOVL", "POP", "PUSH", "PEEK", "LD", "ST", "STR", "STC", "INT",
-    "NEWS", "NEWL", "DELS", "DELL", "SETR", "ADR", "RMR",
+    "NEWS", "NEWL", "NEWF", "DELS", "DELL", "SETR", "ADR", "RMR",
     "ITF", "FTI", "ITS", "STI", "FTS", "STF",
     "ADDS", "CPS", "LENS", "EQS", "GETS", "SETS",
     "ADDL", "CPL", "LENL", "EQL", "GETL", "SETL",

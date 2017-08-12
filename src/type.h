@@ -18,9 +18,10 @@ struct List {
     unsigned int position;
 };
 
+// that means Function structure can be read as a List directly
 struct Function {
-    unsigned int env_pointer;
     unsigned int position;
+    unsigned int env_pointer;
 };
 
 union ZValue {
@@ -52,8 +53,8 @@ const char kArgRegisterCount = 6;
 const char kArgRegisterOffset = 8;
 
 const char kBytecodeHeaderLength = sizeof(unsigned char) * 5 + sizeof(unsigned int) * 4;
-const unsigned char kCurrentVersion[2] = {0, 6};
-const unsigned char kMinimumVersion[2] = {0, 6};
+const unsigned char kCurrentVersion[2] = {0, 7};
+const unsigned char kMinimumVersion[2] = {0, 7};
 
 enum VMReturnCode {
     kFinished, 

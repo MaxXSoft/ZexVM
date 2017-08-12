@@ -9,8 +9,8 @@
 namespace {
 
 struct Function {
-    unsigned int env_pointer;
     unsigned int position;
+    unsigned int env_pointer;
 };
 
 #pragma pack(1)
@@ -53,7 +53,7 @@ struct InstVoid {
 enum OpType {
     kIntImm, kFloatImm,
     kReg, kRegReg, kRegInt, kVoid,
-    kCall, kST, kINT, kMOVL, kSETL
+    kST, kINT, kMOVL, kSETL
 };
 
 int op_type[] = {
@@ -61,9 +61,9 @@ int op_type[] = {
     kIntImm, kIntImm, kIntImm, kReg, kIntImm, kIntImm,
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kReg, kReg, kIntImm, kFloatImm,
     kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kFloatImm, kIntImm, kIntImm,
-    kRegInt, kIntImm, kIntImm, kCall, kVoid,
+    kRegInt, kIntImm, kIntImm, kRegInt, kVoid,
     kIntImm, kMOVL, kReg, kRegInt, kReg, kIntImm, kST, kIntImm, kIntImm, kINT,
-    kReg, kIntImm, kReg, kReg, kReg, kRegReg, kRegReg,
+    kReg, kIntImm, kIntImm, kReg, kReg, kReg, kRegReg, kRegReg,
     kReg, kReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg, kRegReg, kRegReg, kRegReg,
     kRegReg, kRegReg, kRegReg, kRegReg, kRegReg, kSETL
@@ -192,33 +192,6 @@ bool Generator::HandleOperator() {
                     out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
                     HandleLabelRef();
                     return true;
-                }
-            }
-            return false;
-        }
-        case kCall: {
-            Next();
-            if (tok_type == kRegister) {
-                GenRegReg(lexer_.reg_val(), 1);
-                return true;
-            }
-            else if (tok_type == kNumber) {
-                auto env = lexer_.num_val();
-                if (Next() == ',') {
-                    Next();
-                    Function func = {env, 0};
-                    GenRegReg(0, 0);
-                    if (tok_type == kNumber) {
-                        func.position = lexer_.num_val();
-                        WriteBytes(out_, func);
-                        return true;
-                    }
-                    else if (tok_type == kLabelRef) {
-                        WriteBytes(out_, func);
-                        out_.seekp(-sizeof(unsigned int), std::ios_base::cur);
-                        HandleLabelRef();
-                        return true;
-                    }
                 }
             }
             return false;

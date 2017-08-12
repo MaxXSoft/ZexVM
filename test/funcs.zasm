@@ -69,55 +69,55 @@ lst_temp2:
 
 __program:
     mov  a1, 0        ; negative immediate number
-    call 0, print_test
+    call print_test
     movl a1, -120.01e2
     int  "PutFloat"
-    call 0, newline
+    call newline
 
     mov  a1, 1        ; string addition & flush
-    call 0, print_test
+    call print_test
     mov  a1, str_test_addition
     int  "AddRawString"
     int  "AddRawString"
     mov  a1, 1
     int  "Flush"
-    call 0, newline
-    call 0, newline
+    call newline
+    call newline
 
     mov  a1, 2        ; clock
-    call 0, print_test
-    call 0, newline
+    call print_test
+    call newline
     mov  a1, str_test_clock_before
     int  "PutRawString"
     int  "GetMillisecond"
     mov  a1, rv
     int  "PutInteger"
-    call 0, newline
-    call 0, kill_time
+    call newline
+    call kill_time
     mov  a1, str_test_clock_after
     int  "PutRawString"
     int  "GetMillisecond"
     mov  a1, rv
     int  "PutInteger"
-    call 0, newline
+    call newline
     mov  a1, str_test_clock_sleep
     int  "PutRawString"
     mov  a1, 1000
     int  "Sleep"
-    call 0, newline
+    call newline
     mov  a1, str_test_clock_done
     int  "PutRawString"
-    call 0, newline
-    call 0, newline
+    call newline
+    call newline
 
     mov  a1, 3        ; file
-    call 0, print_test
-    call 0, newline
+    call print_test
+    call newline
     mov  a1, str_test_file_open
     int  "PutRawString"
     mov  a1, str_test_file_path
     int  "PutRawString"
-    call 0, newline
+    call newline
     mov  a1, str_test_file_path
     news a1
     mov  a2, 0        ; read only
@@ -128,13 +128,13 @@ __program:
     jz   r1, main_if0_else_
     mov  a1, str_test_file_failed
     int  "PutRawString"
-    call 0, newline
+    call newline
     jmp  main_if0_end_
 main_if0_else_:
     mov  r1, rv       ; r1 = file_pointer
     mov  a1, str_test_file_read
     int  "PutRawString"
-    call 0, newline
+    call newline
     mov  a1, r1
     int  "ReadByte"
     mov  a1, rv
@@ -170,18 +170,18 @@ main_for0_:
     add  r3, 1
     jmp  main_for0_
 main_for0_end_:
-    call 0, newline
+    call newline
     mov  a1, r1
     int  "CloseFile"
     mov  a1, str_test_file_close
     int  "PutRawString"
-    call 0, newline
+    call newline
 main_if0_end_:
-    call 0, newline
+    call newline
 
     mov  a1, 4        ; string operations
-    call 0, print_test
-    call 0, newline
+    call print_test
+    call newline
     mov  r1, str_temp0
     news r1
     mov  r2, str_temp1
@@ -192,23 +192,23 @@ main_if0_end_:
     int  "PutRawString"
     lens a1, r1
     int  "PutInteger"
-    call 0, newline
+    call newline
     adds r1, r2
     mov  a1, r1
     int  "PutString"
-    call 0, newline
+    call newline
     mov  a1, r1
     eqs  a1, r3
     int  "PutInteger"
     dels r1
     dels r2
     dels r3
-    call 0, newline
-    call 0, newline
+    call newline
+    call newline
 
     mov  a1, 5        ; list operations
-    call 0, print_test
-    call 0, newline
+    call print_test
+    call newline
     mov  r1, lst_temp0
     newl r1, 5
     mov  r2, lst_temp1
@@ -216,23 +216,23 @@ main_if0_end_:
     mov  r3, lst_temp2
     newl r3, 7
     mov  a1, r1
-    call 0, print_list
+    call print_list
     mov  a1, str_test_list_add
     int  "PutRawString"
-    call 0, newline
+    call newline
     addl r1, r2
     mov  a1, r1
-    call 0, print_list
+    call print_list
     mov  a1, r1
     eql  a1, r3
     int  "PutInteger"
-    call 0, newline
+    call newline
     mov  a1, str_test_list_copy
     int  "PutRawString"
-    call 0, newline
+    call newline
     cpl  r4, r2
     mov  a1, r4
-    call 0, print_list
+    call print_list
     dell r1
     dell r2
     dell r3
@@ -276,7 +276,7 @@ pl_for0_:
     add  a3, 1
     jmp  pl_for0_
 pl_for0_end_:
-    call 0, newline
+    call newline
     ret
 
 kill_time:

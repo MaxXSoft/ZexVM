@@ -36,7 +36,7 @@ void GenerateBytecode(std::ifstream &in, std::ofstream &out, const char *file_na
 
     auto error_num = gen.Generate() + lexer.error_num();
     if (error_num > 0) {
-        fprintf(stderr, "generation failed, %d error(s) detected.\n", error_num);
+        fprintf(stderr, "failed to generate: %s, %d error(s) detected.\n", file_name, error_num);
         remove(file.c_str());
     }
 }

@@ -30,40 +30,40 @@ __program:
     itf  r1
     addf r1, 0.6789
     mov  a1, 0
-    call 0, print
+    call print
     mov  a1, r1
     int  "PutFloat"
-    call 0, newline
+    call newline
 
     subf r1, 100.233
     mov  a1, r1
     int  "PutFloat"
-    call 0, newline
+    call newline
     fti  r1
     mov  a1, 1
-    call 0, print
+    call print
     mov  a1, r1
     int  "PutInteger"
-    call 0, newline
+    call newline
 
     mov  r2, string_temp
     news r2
     its  r2, r1
     mov  a1, 2
-    call 0, print
+    call print
     mov  a1, r2
     int  "PutString"
-    call 0, newline
+    call newline
 
     mov  r3, string_attach
     news r3
     adds r2, r3
     stf  r1, r2
     mov  a1, 3
-    call 0, print
+    call print
     mov  a1, r1
     int  "PutFloat"
-    call 0, newline
+    call newline
 
     end
 

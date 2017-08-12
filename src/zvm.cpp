@@ -252,7 +252,8 @@ int ZexVM::Run() {
     }
     _CALL: {
         temp.num.doub = imm_mode ? inst->imm.fp_val : reg_x.doub;
-        reg_[RV].long_long = temp.func.env_pointer;
+        temp.list = {0, temp.func.env_pointer};
+        reg_[RV] = temp.num;
         reg_pc += imm_mode ? itRIF : itR;
         if (!mem_.Push(reg_[PC])) goto _SERR;
         reg_pc = temp.func.position;

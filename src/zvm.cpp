@@ -156,6 +156,11 @@ bool ZexVM::SetStartupArguments(const std::vector<std::string> &arg_list) {
             list[index++] = temp;
         }
         temp.list = mem_.AddListObj(list.get(), arg_list.size());
+        // add strings as list's child node
+        for (index = 0; index < arg_list.size(); ++index) {
+            // depends on the similarity of List and String
+            mem_.AddListRef(temp.list, list[index].list);
+        }
     }
     if (mem_.mem_error()) return !(program_error_ = true);
     reg_[A1] = temp.num;

@@ -8,6 +8,7 @@ union Number {
     double doub;
 };
 
+// that means String and List have the same structure
 struct String {
     unsigned int reserved;
     unsigned int position;
@@ -30,18 +31,6 @@ union ZValue {
     List list;
     Function func;
 };
-
-// enum ZValueType : char {
-//     kNumber, 
-//     kString, 
-//     kList, 
-//     kFunction
-// };
-
-// struct Value {
-//     ZValue value;
-//     char type;
-// };
 
 const unsigned int kMemorySize = 1024 * 32;   // 32k
 const unsigned int kStackSize = 1024 * 16;    // 16k

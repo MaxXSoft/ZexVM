@@ -62,6 +62,13 @@ zvm::ZValue GetString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     return temp;
 }
 
+zvm::ZValue GetNewString(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
+    std::string temp_str;
+    std::cin >> temp_str;
+    temp.str = mem.AddStringObj(temp_str);
+    return temp;
+}
+
 zvm::ZValue AddChar(zvm::IntFuncArg arg, zvm::IntFuncMem mem) {
     putchar((int)(arg[0].long_long & 0xFF));
     return null_value;
@@ -174,6 +181,7 @@ InterruptManager::InterruptManager() {
     RegisterInterrupt("GetInteger", GetInteger);
     RegisterInterrupt("GetFloat", GetFloat);
     RegisterInterrupt("GetString", GetString);
+    RegisterInterrupt("GetNewString", GetNewString);
     RegisterInterrupt("AddChar", AddChar);
     RegisterInterrupt("AddString", AddString);
     RegisterInterrupt("AddRawString", AddRawString);

@@ -11,7 +11,7 @@ ZexVM has its own instruction set and assembly language (similar to x86), also h
 ## Features
 
 - Tracing garbage collection while runtime
-- `String` and `List` type data structure (controled by garbage collector)
+- `String` and `List` type data structure (controlled by garbage collector)
 - `Function` type for a better support of anonymous functions and closures
 - 64-bit integer and floating point number
 - Call an external function by using `INT` instruction

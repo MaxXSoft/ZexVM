@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <array>
+#include <vector>
 
 #include "type.h"
 #include "memman.h"

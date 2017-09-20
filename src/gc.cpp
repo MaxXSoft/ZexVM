@@ -3,8 +3,6 @@
 namespace zvm {
 
 bool GarbageCollector::Reallocate(MemSizeT need_size) {
-    // reset reachable status
-    for (auto &&i : obj_set_) i.second.set_reachable(false);
     // mark unreachable object recursively
     Trace(root_id_);
 
@@ -20,8 +18,12 @@ bool GarbageCollector::Reallocate(MemSizeT need_size) {
             i = obj_set_.erase(i);
         }
         else {
+            // reset reachable status
+            gco.set_reachable(false);
             total_size += gco.length();
             // completely full
+            //     notice that if program were not forced to stop now
+            //     the reachable status would be wrong
             if (total_size > pool_size_) return false;
             // copy to new pool
             for (MemSizeT j = 0; j < gco.length(); ++j) {
@@ -102,29 +104,43 @@ unsigned int GarbageCollector::AddObjFromMemory(const char *position, MemSizeT l
 }
 
 bool GarbageCollector::ExpandObj(unsigned int id, const char *data_pos, MemSizeT data_len, MemSizeT overlay) {
-    auto obj = obj_set_.find(id);
-    if (obj == obj_set_.end()) return !(gc_error_ = true);
+    auto it = obj_set_.find(id);
+    if (it == obj_set_.end()) return !(gc_error_ = true);
+    auto &obj = it->second;
     // calculate the length of the original object
     // after excluding the overlay
-    auto obj_len = obj->second.length() - overlay;
+    auto obj_len = obj.length() - overlay;
     if (obj_len <= 0) return !(gc_error_ = true);
-    // allocate a new object
-    auto new_id = AddObj(obj_len + data_len);
-    if (gc_error_) return false;
-    // copy the data whose length is obj_len
-    // from the original object to the new object
-    auto new_obj = obj_set_.find(new_id);
-    auto obj_pos = obj->second.position(), new_pos = new_obj->second.position();
-    for (MemSizeT i = 0; i < obj_len; ++i) {
-        gc_pool_[new_pos + i] = gc_pool_[obj_pos + i];
+
+    MemSizeT start_pos;
+    // object is not on the top of GC pool
+    if (obj.position() + obj.length() != gc_stack_ptr_) {
+        // allocate a new object
+        auto new_id = AddObj(obj_len + data_len);
+        if (gc_error_) return false;
+        // copy the data whose length is obj_len
+        // from the original object to the new object
+        auto new_it = obj_set_.find(new_id);
+        auto &new_obj = new_it->second;
+        auto obj_pos = obj.position();
+        start_pos = new_obj.position();
+        for (MemSizeT i = 0; i < obj_len; ++i) {
+            gc_pool_[start_pos + i] = gc_pool_[obj_pos + i];
+        }
+        // move the content of new object and the original one
+        // and delete the new object
+        obj = std::move(new_obj);
+        obj_set_.erase(new_it);
     }
-    // move the content of new object and the original one
-    // and delete the new object
-    obj->second = std::move(new_obj->second);
-    obj_set_.erase(new_obj);
+    else {
+        // just change stack pointer directly
+        gc_stack_ptr_ += data_len - overlay;
+        start_pos = obj.position();
+    }
+
     // copy the remaining data
     for (MemSizeT i = 0; i < data_len; ++i) {
-        gc_pool_[new_pos + obj_len + i] = data_pos[i];
+        gc_pool_[start_pos + obj_len + i] = data_pos[i];
     }
     return true;
 }
@@ -134,6 +150,12 @@ bool GarbageCollector::DeleteObj(unsigned int id) {
     if (it != obj_set_.end()) {
         free_id_.push_back(it->first);
         obj_set_.erase(it);
+        auto &gco = it->second;
+        // object is on the top of the GC pool
+        if (gco.position() + gco.length() == gc_stack_ptr_) {
+            // restore stack pointer
+            gc_stack_ptr_ -= gco.length();
+        }
         return true;
     }
     else {

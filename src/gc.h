@@ -17,7 +17,7 @@ public:
     using ElemList = std::deque<unsigned int>;
 
     explicit GCObject(MemSizeT position, MemSizeT length)
-            : position_(position), length_(length) {}
+            : position_(position), length_(length), reachable_(false) {}
     // move constructor
     GCObject(GCObject &&gco) noexcept
             : position_(gco.position_), length_(gco.length_),

@@ -129,12 +129,17 @@ bool GarbageCollector::ExpandObj(unsigned int id, const char *data_pos, MemSizeT
         }
         // move the content of new object and the original one
         // and delete the new object
-        obj = std::move(new_obj);
+        obj = std::move(new_obj);   // TODO: test
         obj_set_.erase(new_it);
     }
     else {
         // just change stack pointer directly
-        gc_stack_ptr_ += data_len - overlay;
+        auto size = data_len - overlay;
+        // full GC
+        if (gc_stack_ptr_ + size >= pool_size_) {
+            if (!Reallocate(size)) return !(gc_error_ = true);
+        }
+        gc_stack_ptr_ += size;
         start_pos = obj.position();
     }
 

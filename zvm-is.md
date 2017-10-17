@@ -51,7 +51,7 @@ After doing that, collector will start to reallocate the pool space according to
 
 ## Instruction Format
 
-There are 7 types of instructions in ZexVM. 
+There are 8 types of instructions in ZexVM. 
 
 - Void
 

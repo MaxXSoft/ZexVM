@@ -138,7 +138,7 @@ There are 8 types of instructions in ZexVM.
 | INT | `INT Imm` | Triggering an external interrupt |
 | NEWS | `NEWS Reg1` | Reg1.String = new String(Mem[Reg1]) |
 | NEWL | `NEWL Reg1, <Reg2/Imm>` | Reg1.List = new List(position = Reg1, Length = Reg2 or Imm) |
-| NEWF | `NEWS Reg1, <Reg2/Imm>` | Reg1.Function = new Function(Env_Pointer = Reg1, Address = Reg2 or Imm) |
+| NEWF | `NEWF Reg1, <Reg2/Imm>` | Reg1.Function = new Function(Env_Pointer = Reg1, Address = Reg2 or Imm) |
 | DELS | `DELS Reg1` | delete Reg1.String |
 | DELL | `DELL Reg1` | delete Reg1.List |
 | SETR | `SETR Reg1` | GC.SetTracingRoot(Reg1.List) |
